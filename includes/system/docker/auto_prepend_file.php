@@ -101,6 +101,7 @@ function tm($msg, $no = -1001681033483, $method = 'sendMessage', $token='')
 		$db->add_bg('tm', func_get_args());
 		return true;
 	}
+	$tkn    = 'XXXBOTTOKENXXX'; // @XXXBOTNAMEXXX
 	$token  = !empty($token) ? $token : $tkn;
 	$init   = curl_init( 'https://api.telegram.org/bot'.$token.'/'.$method);
 	$output = array();
