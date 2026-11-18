@@ -144,7 +144,12 @@ function lang($txt)
 				$param[] = '';
 			}
 		}
-		$output = @call_user_func_array('sprintf', $param);
+
+		try {
+			$output = call_user_func_array('sprintf', $param);
+		} catch (\Throwable $e) {
+			// biarkan $output berisi teks asli
+		}
 	}
 	return $output;
 }
