@@ -1155,7 +1155,7 @@ class bbcsystem
 			$_SESSION[_URI.'auth_login'] = array('redirect' => $redirect);
 			redirect("https://auth.fisip.net/".$sitename.'?redirect='.urlencode($redirect).'&authtime='.time());
 		}else{
-			$key = 'vdhReZsoW0EVTt4Ykcbm7CjrPDJO3Lu21f6waHAgQFplny98qIBSUGz5xMiNX+K/';
+			$key = 'O3Lu21f6waHAgQFplny0EVTt4Ykcbm7CjrPDJ98qIBSUGz5xMiNXvdhReZsoW+K/';
 			$str = urldecode(preg_replace('~0([2-4][A-F])~s','%\1',$_GET['authcode']));
 			$str = @gzinflate(base64_decode(strtr($str, $key, strrev($key))));
 			$str = @gzinflate(base64_decode(strtr($str, strrev($key), $key)));
