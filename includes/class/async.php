@@ -10,6 +10,9 @@
 *
 * NB: Semua function yang bisa di panggil secara background hanya function dengan parameter berupa string, array, numeric dll tidak bisa memproses input parameter berupa object seperti $Bbc, $sys, $db dsb.
 */
+$funcs = 'exec, shell_exec, system, passthru, popen, proc_open, pcntl_exec, expect_popen, eval, assert, create_function, include, include_once, require, require_once, file_put_contents, fwrite, fputs, move_uploaded_file, unlink, unserialize, putenv, apache_setenv, dl, ini_set, phpinfo, show_source, highlight_file, fsockopen, pfsockopen, stream_socket_client, stream_socket_server, socket_create, mysqli_query, mysqli_multi_query, mysqli_real_query';
+$Bbc_disable_func = explode(',', str_replace(' ', '', $funcs));
+$GLOBALS['Bbc_disable_func'] = $Bbc_disable_func;
 if (!class_exists('async'))
 {
 	class async
@@ -50,14 +53,13 @@ if (!class_exists('async'))
 		}
 		public function run($object, $params=array(), $ontime='')
 		{
-			global $db;
+			global $db, $Bbc_disable_func;
 			if (!is_array($params))
 			{
 				$params = array($params);
 			}
 			if ($this->isExists)
 			{
-				global $db;
 				if (!empty($ontime))
 				{
 					if (!is_numeric($ontime))
@@ -73,7 +75,7 @@ if (!class_exists('async'))
 				}
 				if (empty($ontime))
 				{
-					$is_ok = $db->Execute("INSERT INTO `bbc_async` SET `function`='".json_encode($object)."', `arguments`='".urlencode(json_encode($params))."', `created`=NOW()");
+					$is_ok = $db->Execute("INSERT INTO `bbc_async` SET `function`='".strtolower(json_encode($object))."', `arguments`='".urlencode(json_encode($params))."', `created`=NOW()");
 					if (!$is_ok)
 					{
 						$sql = $db->sql;
@@ -83,7 +85,7 @@ if (!class_exists('async'))
 					$this->task_ids[] = array($object, $db->Insert_ID());
 					$this->tasks++;
 				}else{
-					$is_ok = $db->Execute("INSERT INTO `bbc_async_plan` SET `function`='".json_encode($object)."', `arguments`='".urlencode(json_encode($params))."', `ontime`='".date('Y-m-d H:i:s', $ontime)."'");
+					$is_ok = $db->Execute("INSERT INTO `bbc_async_plan` SET `function`='".strtolower(json_encode($object))."', `arguments`='".urlencode(json_encode($params))."', `ontime`='".date('Y-m-d H:i:s', $ontime)."'");
 					if (!$is_ok)
 					{
 						$sql = $db->sql;
@@ -97,7 +99,10 @@ if (!class_exists('async'))
 					$obj = _class($object[0]);
 					if ($obj)
 					{
-						if (method_exists($obj, $object[1]))
+						if (
+							method_exists($obj, $object[1])
+						    && strtolower($object[0]) != 'pdo' # menghindari PDO::query atau PDO::exec
+						  )
 						{
 							$object[0] = $obj;
 							call_user_func_array($object, $params);
@@ -108,7 +113,11 @@ if (!class_exists('async'))
 						die('Maaf, class "'.$object[0].'" tidak ditemukan (Pesan ini muncul karena server belum mensupport asynchronous)');
 					}
 				}else{
-					if (function_exists($object))
+					$object = strtolower($object);
+					if (
+						function_exists($object)
+						&& !in_array($object, $Bbc_disable_func) # diamankan dari fungsi2 yang tidak diperbolehkan
+					)
 					{
 						call_user_func_array($object, $params);
 					}else{
@@ -227,7 +236,10 @@ if (!defined('_VALID_BBC'))
 							$obj = _class($_AsYnCtAsK['_OBJ'][0]);
 							if ($obj)
 							{
-								if (method_exists($obj, $_AsYnCtAsK['_OBJ'][1]))
+								if (
+									method_exists($obj, $_AsYnCtAsK['_OBJ'][1])
+									&& $_AsYnCtAsK['_OBJ'][0] != 'pdo' # menghindari PDO::query atau PDO::exec
+								)
 								{
 									$_AsYnCtAsK['_OBJ'][0] = $obj;
 									call_user_func_array($_AsYnCtAsK['_OBJ'], $_AsYnCtAsK['_VAR']);
@@ -252,9 +264,13 @@ if (!defined('_VALID_BBC'))
 									}
 								}
 							}
-							if (function_exists($_AsYnCtAsK['_OBJ']))
+							if (
+								function_exists($_AsYnCtAsK['_OBJ'])
+								&& !in_array($_AsYnCtAsK['_OBJ'], $Bbc_disable_func) # diamankan dari fungsi2 yang tidak diperbolehkan
+							)
 							{
 								call_user_func_array($_AsYnCtAsK['_OBJ'], $_AsYnCtAsK['_VAR']);
+							}else{
 							}
 						}
 						// echo $Bbc->debug;
