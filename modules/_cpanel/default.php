@@ -1,7 +1,14 @@
 <?php  if (!defined('_VALID_BBC')) exit('No direct script access allowed');
 
-$mod = explode('.', @$_GET['_mod']);
-if (!empty($mod[0]))
+$mod = explode('.', is_string(@$_GET['_mod']) ? $_GET['_mod'] : '');
+// Only plain, active module names and plain task names. A slash would let the
+// request load admin code (e.g. "bigbang/admin.approval_withdraw") without login.
+$mod_ok = !empty($mod[0])
+	&& count($mod) <= 2
+	&& preg_match('~^[a-z0-9_]+$~i', $mod[0])
+	&& (empty($mod[1]) || preg_match('~^[a-z0-9_\-]+$~i', $mod[1]))
+	&& $sys->get_module_id($mod[0]) > 0;
+if ($mod_ok)
 {
 	if (empty($mod[1]))
 	{
