@@ -108,7 +108,8 @@ biasanya diambil dari URL saat itu
 function menu_parent_ids($id, $arr_menu=array(), $out = array())
 {
 	global $Bbc;
-	if (!empty($Bbc->menu_parent_ids[$id??'']))
+	$id = $id ?? '';
+	if (!empty($Bbc->menu_parent_ids[$id]))
 	{
 		return $Bbc->menu_parent_ids[$id];
 	}
