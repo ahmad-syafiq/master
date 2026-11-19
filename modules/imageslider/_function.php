@@ -28,7 +28,7 @@ function imageslider_save($id = 0)
   {
     $id = $_GET['id'];
   }
-  $q = "SELECT `cat_id`, `image` FROM `imageslider` WHERE `id`=$id";
+  $q = "SELECT `cat_id`, `image` FROM `imageslider` WHERE `id`=".intval($id);
   $r = $db->getRow($q);
   $image = $Bbc->mod['dir'].$r['image'];
   if(is_file($image))

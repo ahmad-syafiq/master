@@ -235,6 +235,10 @@ class images
 			{
 				$this->img .= '.'.$ext;
 			}
+			if (!$this->upload_is_ok($this->img))
+			{
+				return false;
+			}
 			$img_path = $this->root.$this->path;
 			$img_dst = $img_path.$this->img;
 			$this->move_upload($imgfile['tmp_name'], $img_dst);
@@ -267,9 +271,29 @@ class images
 
 	function upload_is_ok($name)
 	{
-		$restricted = array('php','phps','php3','php4','phtml','pl','p');
-		return !in_array($this->getExt($name), $restricted);
-		return (!empty($match[1]) && !in_array(strtolower($match[1]), $restricted));
+		// Allowlist instead of the former blacklist, which let through php5,
+		// php7, pht, phar, shtml, ... An uploaded file that the web server can
+		// execute is a webshell.
+		$allowed = array(
+			'jpg','jpeg','png','gif','bmp','webp','ico',
+			'pdf','doc','docx','odt','ods','xls','xlsx','csv','ppt','pptx','txt','rtf',
+			'zip','rar','7z',
+			'mp3','mp4','mov','m4a','wav','webm'
+			);
+		$name = strtolower(basename((string)$name));
+		if (!in_array($this->getExt($name), $allowed))
+		{
+			return false;
+		}
+		// Reject names such as "x.php.jpg": some servers run them as PHP.
+		foreach (explode('.', $name) as $part)
+		{
+			if (preg_match('~^(php[0-9s]?|phtml?|pht|phar|pl|py|cgi|sh|asp|aspx|jsp|shtml?|htaccess|user)$~', $part))
+			{
+				return false;
+			}
+		}
+		return true;
 	}
 
 	function resize($sizes, $imgdst = '', $compress = 100, $type = 'proportion', $force = false)

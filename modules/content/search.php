@@ -16,11 +16,11 @@ if(!empty($keyword))
 	$_SESSION['currSearch'] = $keyword;
 
 	$q = "SELECT SQL_CALC_FOUND_ROWS *,
-			MATCH (title,description,keyword,tags,intro,content) AGAINST ('".$keyword."' IN BOOLEAN MODE) AS score,
-			MATCH (title) AGAINST ('".$keyword."' IN BOOLEAN MODE) AS score_title
+			MATCH (title,description,keyword,tags,intro,content) AGAINST ('".addslashes($keyword)."' IN BOOLEAN MODE) AS score,
+			MATCH (title) AGAINST ('".addslashes($keyword)."' IN BOOLEAN MODE) AS score_title
 		FROM bbc_content AS c
 			LEFT JOIN bbc_content_text AS t ON (c.id=t.content_id AND lang_id=".lang_id().")
-		WHERE MATCH (title,description,keyword,tags,intro,content) AGAINST ('".$keyword."' IN BOOLEAN MODE) AND c.publish=1
+		WHERE MATCH (title,description,keyword,tags,intro,content) AGAINST ('".addslashes($keyword)."' IN BOOLEAN MODE) AND c.publish=1
 		ORDER BY score_title DESC, score DESC, id DESC
 			LIMIT $page, ".$limit;
 	$r_list = $db->getAll($q);

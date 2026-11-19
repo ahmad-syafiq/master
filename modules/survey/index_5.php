@@ -43,7 +43,7 @@ if(isset($_POST['Submit']) && !empty($_POST['Submit']))
 	$posted_id = $db->Insert_ID();
 
 	// GET QUESTIONS...
-	$question_ids		= implode(',', (array)$input['index']);
+	$question_ids		= implode(',', array_map('intval', (array)$input['index']));
 	$q = "SELECT q.id, t.title FROM survey_question AS q LEFT JOIN survey_question_text AS t
 			ON (q.id=t.question_id AND t.lang_id=".lang_id().")
 			WHERE q.id IN (".$question_ids.") ORDER BY orderby";
@@ -58,6 +58,7 @@ if(isset($_POST['Submit']) && !empty($_POST['Submit']))
 	$option_ids = array();
 	foreach((array)$data AS $question_id => $dt)
 	{
+		$question_id = intval($question_id);
 		$q = "SELECT type, file FROM survey_question WHERE id=$question_id";
 		$d = $db->getRow($q);
 		$is_execute = true;
@@ -72,6 +73,7 @@ if(isset($_POST['Submit']) && !empty($_POST['Submit']))
 		}
 		if($is_execute)
 		{
+			$dt['ids'] = array_map('intval', (array)@$dt['ids']);
 			$q = "SELECT title FROM survey_question_option_text WHERE option_id IN (".implode(',', (array)$dt['ids']).") AND lang_id=".lang_id();
 			$titles = $db->getCol($q);
 			$titles = addslashes_r($titles);

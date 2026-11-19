@@ -10,7 +10,7 @@ foreach((array)$dt AS $i => $r)
 					SET `posted_id`   = $posted_id
 					, `question_id`   = $question_id
 					, `question_title`= '".addslashes($rd['question'])."'
-					, `option_ids`    = $demografi_id
+					, `option_ids`    = ".intval($demografi_id)."
 					, `option_titles` = '".addslashes($rd['answer'])."'
 					, `note`          = '".addslashes($dt['notes'])."'";
 			$db->Execute($q);

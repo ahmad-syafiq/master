@@ -1,11 +1,15 @@
 <?php  if (!defined('_VALID_BBC')) exit('No direct script access allowed');
 
-if (!empty($_GET['token']))
+// The token is decoded with the public _SALT, so its table / db are validated
+// and only an admin or the owner of the content may delete its comments.
+if (!empty($_GET['token']) && is_string($_GET['token']))
 {
+	_func('user');
 	@list($token, $config) = _class('comment')->decode($_GET['token']);
+	$config = is_array($config) ? $config : array();
 	if (!empty($config['db']))
 	{
-		$db = ${$config['db']};
+		$db = user_token_db($config['db']);
 		unset($config['db']);
 	}
 
@@ -14,10 +18,12 @@ if (!empty($_GET['token']))
 	if ( !empty($id)
 		&& !empty($config['id'])
 		&& !empty($config['expire'])
-		&& $config['expire'] > time())
+		&& $config['expire'] > time()
+		&& user_token_is_identifier(@$config['table'])
+		&& preg_match('~_comment$~i', $config['table']))
 	{
 		$data = $db->getRow("SELECT * FROM `".$config['table']."` WHERE `id`={$id}");
-		if (!empty($data))
+		if (!empty($data) && user_token_comment_access($config['table'], $data))
 		{
 			$ids = user_comment_ids($id, $config['table']);
 			ids($ids);

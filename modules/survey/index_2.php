@@ -11,7 +11,7 @@ if(!isset($sess['index']) || empty($sess['index']))
 	}
 }
 
-$ids = $sess['index'];
+$ids = array_map('intval', (array)$sess['index']);
 $q = "SELECT q.id, q.*, t.* FROM survey_question AS q LEFT JOIN survey_question_text AS t
 		ON (q.id=t.question_id AND t.lang_id=".lang_id().")
 		WHERE q.id IN(".implode(',', $ids).") ORDER BY orderby";

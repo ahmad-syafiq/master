@@ -4,7 +4,7 @@
 if(!isset($sess['index']) || empty($sess['index'])) redirect($Bbc->mod['circuit']);
 if(!isset($sess['index_2']) || empty($sess['index_2'])) redirect($Bbc->mod['circuit'].'.index_2');
 
-$ids = $sess['index'];
+$ids = array_map('intval', (array)$sess['index']);
 $q = "SELECT q.id, q.*, t.* FROM survey_question AS q LEFT JOIN survey_question_text AS t
 		ON (q.id=t.question_id AND t.lang_id=".lang_id().")
 		WHERE q.id IN(".implode(',', $ids).") AND q.type='custom' ORDER BY orderby";

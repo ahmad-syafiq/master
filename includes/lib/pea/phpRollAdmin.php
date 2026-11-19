@@ -29,6 +29,32 @@ echo $form->roll->getForm();
 include_once(_PEA_ROOT . 'nav.inc.php');
 class phpRollAdmin extends phpEasyAdminLib
 {
+	/**
+	 * Replaces the former eval('if(<posted value> <operator> <value>)'): the
+	 * posted value comes from the request, so eval() ran attacker code.
+	 */
+	function disableCompare($a, $operator, $b)
+	{
+		if (is_array($a))
+		{
+			return false;
+		}
+		switch (trim((string)$operator))
+		{
+			case '=':
+			case '==':  return $a == $b;
+			case '===': return $a === $b;
+			case '!=':
+			case '<>':  return $a != $b;
+			case '!==': return $a !== $b;
+			case '<':   return $a < $b;
+			case '<=':  return $a <= $b;
+			case '>':   return $a > $b;
+			case '>=':  return $a >= $b;
+		}
+		return false;
+	}
+
 	var $tableId;
 	var $nav;			// untuk nyimpen obyek dari class oNav (navigasi prev next)
 	var $isChangeBc   = true;	// apakah roll berubah bgcolornya saat on hover
@@ -120,7 +146,7 @@ class phpRollAdmin extends phpEasyAdminLib
 				{
 					foreach ((array)$this->disableInput['system_delete_tool'] as $exec)
 					{
-						eval('if('.$_POST[$idName][$id].' '.$exec[0].' '.$exec[1].'){$is_disable=true;}');
+						$is_disable = $this->disableCompare(@$_POST[$idName][$id], $exec[0], $exec[1]);
 						if ($is_disable)
 						{
 							break;

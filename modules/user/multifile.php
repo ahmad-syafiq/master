@@ -9,10 +9,38 @@ if (!empty($_GET['token']))
 	unset($get['mod'], $get['qqfile'], $get['id']);
 	$param = json_decode(decode(str_replace(' ', '+', implode('', $get))), 1);
 }
+// Only admin forms use this uploader. The token is encrypted with _SALT,
+// which must be treated as leaked, so nothing in it is trusted for paths,
+// extensions or image-library settings.
+if (empty($_SESSION['bbcAuthAdmin']['id']))
+{
+	output_json(array('error' => 'Access denied'));
+	die();
+}
+$multifile_safe_path = function($path) {
+	$path = is_string($path) ? trim($path) : '';
+	return (strpos($path, '..') === false && strpos($path, "\0") === false && preg_match('~^[a-z0-9_\-/]*$~i', $path)) ? ltrim($path, '/') : false;
+};
+$multifile_ext_allowed = array('jpg','jpeg','png','gif','webp','bmp','pdf','doc','docx','xls','xlsx','ppt','pptx','txt','csv','zip','mp3','mp4');
+if (is_array($param) && isset($param['path']['tmp']) && $multifile_safe_path($param['path']['tmp']) === false)
+{
+	output_json(array('error' => 'Invalid upload folder'));
+	die();
+}
+if (is_array($param) && !empty($param['folder']) && $multifile_safe_path(str_replace(_ROOT, '', $param['folder'])) === false)
+{
+	unset($param['folder']);
+}
 if ($file && !empty($param['expire']) && $param['expire'] > time())
 {
-	$file->path = _ROOT.'images/tmp/'.@trim($param['path']['tmp']);
-	$extAllowed = $param['ext'];
+	$file->path = _ROOT.'images/tmp/'.$multifile_safe_path(@$param['path']['tmp']);
+	$extAllowed = !empty($param['ext']) && is_array($param['ext'])
+		? array_values(array_intersect(array_map('strtolower', $param['ext']), $multifile_ext_allowed))
+		: $multifile_ext_allowed;
+	if (empty($extAllowed))
+	{
+		$extAllowed = $multifile_ext_allowed;
+	}
 	$sizeLimit  = 1024*1024*1024;
 	if (!file_exists($file->path))
 	{
@@ -38,8 +66,8 @@ if ($file && !empty($param['expire']) && $param['expire'] > time())
 	}
 	$pathinfo = pathinfo($file->getName());
 	$filename = menu_save($pathinfo['filename']);
-	$ext      = $pathinfo['extension'];
-	if($extAllowed && !in_array(strtolower($ext), $extAllowed))
+	$ext      = strtolower(@$pathinfo['extension']);
+	if(!in_array($ext, $extAllowed))
 	{
 		$these = implode(', ', $extAllowed);
 		output_json(array('error' => 'File has an invalid extension, it should be one of these '. implode('/',$extAllowed)));
@@ -71,7 +99,8 @@ if ($file && !empty($param['expire']) && $param['expire'] > time())
 		}
 		if (!empty($param['watermark']))
 		{
-			if (!empty($param['watermark']['wm_overlay_path']) && file_exists($param['watermark']['wm_overlay_path']))
+			$wm_real = !empty($param['watermark']['wm_overlay_path']) && is_string($param['watermark']['wm_overlay_path']) ? realpath($param['watermark']['wm_overlay_path']) : false;
+			if ($wm_real && strpos($wm_real, realpath(_ROOT)) === 0 && preg_match('~\.(png|jpe?g|gif)$~i', $wm_real))
 			{
 				$watermark = array(
 					'wm_type'          => 'overlay',
@@ -102,14 +131,27 @@ if ($file && !empty($param['expire']) && $param['expire'] > time())
 						$watermark['wm_hor_alignment'] = 'right';
 						break;
 				}
-				$watermark = array_merge($watermark, $param['watermark']);
+				// Only plain watermark settings may come from the token: keys such as
+				// image_library/library_path end up in a shell command (exec).
+				foreach (array('wm_opacity', 'wm_x_transp', 'wm_y_transp') as $k)
+				{
+					if (isset($param['watermark'][$k]) && is_numeric($param['watermark'][$k]))
+					{
+						$watermark[$k] = intval($param['watermark'][$k]);
+					}
+				}
 				$img->initialize($watermark);
 				$img->watermark();
 			}
 		}
 		if (!empty($param['thumbnail']))
 		{
-			$path = $file->path.$param['thumbnail']['prefix'];
+			$thumb_prefix = $multifile_safe_path(@$param['thumbnail']['prefix']);
+			if ($thumb_prefix === false)
+			{
+				$thumb_prefix = 'thumb_';
+			}
+			$path = $file->path.$thumb_prefix;
 			if ($param['thumbnail']['is_dir'])
 			{
 				_func('path', 'create', $path);

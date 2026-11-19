@@ -26,10 +26,10 @@ foreach((array)$dt AS $i => $r)
 {
 	if($i != 'notes')
 	{
-		$option_ids		= implode(',', array_flip($r));
+		$option_ids		= implode(',', array_map('intval', array_flip((array)$r)));
 		$option_titles= questionary_title($r);
 		$q = "SELECT title FROM `survey_questionary` WHERE `question_id`=$question_id AND `publish`=1 ORDER BY `orderby` ASC";
-		$question_title = implode('<br />', $db->getCol($q));
+		$question_title = addslashes(implode('<br />', $db->getCol($q)));
 		$q = "INSERT INTO `survey_posted_question`
 					SET `posted_id`   = $posted_id
 					, `question_id`   = $question_id

@@ -1,14 +1,22 @@
 <?php  if (!defined('_VALID_BBC')) exit('No direct script access allowed');
 
 #!/includes/lib/pea/form/FormMultiid.php
-if (!empty($_POST) && !empty($_POST['id']) && !empty($_POST['token']))
+// FormMultiid is only used by admin forms. The token is decoded with the public
+// _SALT, so every identifier / SQL fragment in it is validated.
+if (!empty($_POST) && !empty($_POST['id']) && !empty($_POST['token']) && is_string($_POST['id']) && is_string($_POST['token']))
 {
+	_func('user');
 	$output = array('success' => 0, 'value' => '', 'html' => '');
+	if (!user_token_is_admin())
+	{
+		output_json($output);
+		die();
+	}
 	$ids    = user_formmultiid_ids($_POST['id']);
 	$token  = json_decode(decode(str_replace(' ', '+', urldecode($_POST['token']))), 1);;
-	if (!empty($ids) && !empty($token['expire']) && $token['expire'] > time())
+	if (!empty($ids) && is_array($token) && !empty($token['expire']) && $token['expire'] > time())
 	{
-		if (!empty($token['reference']))
+		if (!empty($token['reference']) && is_array($token['reference']))
 		{
 			$links = !empty($token['links']) ? $token['links'] : '';
 			$table = '';
@@ -21,9 +29,19 @@ if (!empty($_POST) && !empty($_POST['id']) && !empty($_POST['token']))
 			$value     = @$token['reference']['value'];
 			$label     = @$token['reference']['label'];
 			$sql       = @$token['reference']['sql'];
-			if (!empty($token['reference']['db']))
+			$db        = user_token_db(@$token['reference']['db']);
+			$sql       = empty($sql) ? array() : (array)$sql;
+			$is_ok     = user_token_is_identifier($value, true)
+				&& user_token_sql_is_safe($label)
+				&& user_token_sql_is_safe($table);
+			foreach ($sql as $s)
 			{
-				$db = ${$token['reference']['db']};
+				$is_ok = $is_ok && user_token_sql_is_safe($s);
+			}
+			if (!$is_ok)
+			{
+				output_json($output);
+				die();
 			}
 			$q = "SELECT {$value}, {$label} FROM {$table} WHERE {$value} IN ({$ids})";
 			if (!empty($sql))

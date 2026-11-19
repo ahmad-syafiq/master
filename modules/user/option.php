@@ -2,7 +2,7 @@
 
 if (!empty($_GET['id']) && empty($_POST['template']) && preg_match('~^[a-z0-9\-_]+$~is', $_GET['id']))
 {
-	$q = "SELECT 1 FROM `bbc_template` WHERE `name`='".$_GET['id']."'";
+	$q = "SELECT 1 FROM `bbc_template` WHERE `name`='".addslashes($_GET['id'])."'";
 	if ($db->getOne($q))
 	{
 		$_POST['template'] = $_GET['id'];

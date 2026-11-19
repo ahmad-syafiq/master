@@ -11,7 +11,7 @@ if (defined('_IMAGE_STORAGE'))
 	echo msg('Mohon maaf, fitur file manager tidak akan berjalan jika menggunakan stateless server');
 }else{
 	chdir(_ROOT.'includes/lib/ckeditor/filemanager/');
-	$file = @$_GET['id'];
+	$file = is_string(@$_GET['id']) ? basename($_GET['id']) : '';
 	if (substr($file, -4)!='.php')
 	{
 		$file .= '.php';

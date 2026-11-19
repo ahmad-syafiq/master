@@ -16,11 +16,11 @@ if ($id)
 			$usr = str_replace(' ', '+', $usr);
 			$usr = decode($usr);
 			$usr = config_decode($usr);
-			if (empty($usr['email']))
+			if (!is_array($usr) || empty($usr['email']) || !is_string($usr['email']))
 			{
 				redirect($_url);
 			}else{
-				$q = "SELECT id FROM `bbc_content_registrant` WHERE `email`='".$usr['email']."' AND `content_id`={$id}";
+				$q = "SELECT id FROM `bbc_content_registrant` WHERE `email`='".addslashes($usr['email'])."' AND `content_id`={$id}";
 				$I = $db->getOne($q);
 				if ($I > 0)
 				{
@@ -29,10 +29,10 @@ if ($id)
 				}else{
 					$q = "INSERT INTO `bbc_content_registrant` SET
 						`content_id` = {$id},
-						`name`       = '".addslashes($usr['name'])."',
+						`name`       = '".addslashes((string)@$usr['name'])."',
 						`email`      = '".addslashes($usr['email'])."',
-						`phone`      = '".addslashes($usr['phone'])."',
-						`address`    = '".addslashes($usr['address'])."',
+						`phone`      = '".addslashes((string)@$usr['phone'])."',
+						`address`    = '".addslashes((string)@$usr['address'])."',
 						`created`    = NOW()";
 				}
 				$db->Execute($q);

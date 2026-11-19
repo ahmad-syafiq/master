@@ -11,25 +11,28 @@ if (!empty($_POST['id'])
 		'content' => '',
 		'message' => lang('Failed to vote this content')
 		);
-	extract($_POST);
-	$id     = intval($id);
-	$value  = intval($value);
+	// no extract($_POST): it let the request overwrite any variable ($db, $user, ...).
+	// The token is decoded with the public _SALT, so its values are validated.
+	_func('user');
+	$id     = intval($_POST['id']);
+	$value  = intval($_POST['value']);
 	$value  = $value > 0 && $value < 6 ? $value : 1;
-	$params = json_decode(decode($token), 1);
+	$params = is_string($_POST['token']) ? json_decode(decode($_POST['token']), 1) : array();
 	$table  = '';
 	$voter  = 'voter';
 	if (!empty($params) && is_array($params))
 	{
-		$table = @$params['table'];
-		$voter = @$params['voter'];
-		if (!empty($params['db']))
-		{
-			$db = ${$params['db']};
-		}
+		$table = is_string(@$params['table']) ? $params['table'] : '';
+		$voter = is_string(@$params['voter']) ? $params['voter'] : $voter;
+		$db    = user_token_db(@$params['db']);
 	}
 	$table  = menu_save($table);
-	$rating = $db->getOne("SELECT rating FROM `{$table}` WHERE id={$id}");
-	if ($db->Affected_rows())
+	$rating = '';
+	if ($id > 0 && user_token_is_identifier($table))
+	{
+		$rating = $db->getOne("SELECT rating FROM `{$table}` WHERE id={$id}");
+	}
+	if ($id > 0 && user_token_is_identifier($table) && $db->Affected_rows())
 	{
 		$r = explode( ',', $rating );
 		$o = array();

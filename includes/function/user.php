@@ -272,12 +272,12 @@ function user_create_validate($data)
 	global $db;
 	$out = true;
 	@unlink(_CACHE.'user_create_validate_msg.txt');
-	if ($db->getOne("SELECT 1 FROM `bbc_user` WHERE `username`='".$data['username']."'"))
+	if ($db->getOne("SELECT 1 FROM `bbc_user` WHERE `username`='".addslashes($data['username'])."'"))
 	{
 		user_create_validate_msg('Username has already been used!');
 		$out = false;
 	}
-	if ($out && $db->getOne("SELECT 1 FROM `bbc_account` WHERE `email`='".$data['email']."'"))
+	if ($out && $db->getOne("SELECT 1 FROM `bbc_account` WHERE `email`='".addslashes($data['email'])."'"))
 	{
 		user_create_validate_msg('Email address has already been used!');
 		$out = false;
@@ -370,7 +370,7 @@ function user_delete($user_ids)
 function user_reminder($email, $is_send = true)
 {
 	global $db, $sys;
-	$q="SELECT * FROM bbc_account WHERE `email`='".strtolower($email)."'";
+	$q="SELECT * FROM bbc_account WHERE `email`='".addslashes(strtolower((string)$email))."'";
 	$acc = $db->getRow($q);
 	if(!$db->Affected_rows())
 	{
@@ -440,7 +440,7 @@ function user_login($username, $password, $is_admin = 0, $rememberme = 0)
 	{
 		return $output;
 	}
-	$username = str_replace("'", "\'", $username);
+	$username = addslashes((string)$username);
 	$q        = "SELECT * FROM `bbc_user` WHERE `username`='{$username}'";
 	$dt       = $db->getRow($q);
 	if(!empty($dt))
@@ -712,4 +712,92 @@ function user_location($click_ids, $id_area, $alert = '')
 	$output = ob_get_contents();
 	ob_end_clean();
 	return $output;
+}
+/*
+ * Helpers for the token driven endpoints in modules/user (tags, multiid,
+ * orderby, rating, comment_delete, comment_publish). Those tokens are built
+ * with encode() and _SALT is public, so every value inside a token is
+ * attacker controlled and must be checked before it reaches SQL.
+ */
+function user_token_is_identifier($str, $qualified = false)
+{
+	if (!is_string($str))
+	{
+		return false;
+	}
+	$re = $qualified ? '~^`?[a-z0-9_]+`?(\.`?[a-z0-9_]+`?)?$~i' : '~^[a-z0-9_]+$~i';
+	return (bool)preg_match($re, $str);
+}
+/*
+ * Accepts the small SQL fragments the PEA forms put in tokens (table + WHERE,
+ * JOIN ... ON, CONCAT(title, " (", id, ")"), lang_id=1 AND active=1, ...) and
+ * rejects anything that can break out of them: comments, statement separators,
+ * escapes, unbalanced quotes, sub queries / UNION, file and timing functions,
+ * and columns holding secrets.
+ */
+function user_token_sql_is_safe($sql)
+{
+	if (is_int($sql))
+	{
+		return true;
+	}
+	if (!is_string($sql))
+	{
+		return false;
+	}
+	if (preg_match('~(--|#|/\*|\*/|;|\\\\|@|\x00)~', $sql))
+	{
+		return false;
+	}
+	$s = preg_replace(array('~"[^"]*"~', "~'[^']*'~"), ' 0 ', $sql);
+	if (preg_match('~["\']~', $s))
+	{
+		return false;
+	}
+	if (preg_match('~\b(union|select|insert|update|delete|replace|drop|alter|create|truncate|rename|grant|into|outfile|dumpfile|load_file|load|sleep|benchmark|get_lock|extractvalue|updatexml|exp|information_schema|mysql|performance_schema|sys|handler|procedure|execute|prepare|char|unhex|from_base64|password|passwd|pwd|secret|token|salt|api_key|0x[0-9a-f]+|0b[01]+)\b~i', $s))
+	{
+		return false;
+	}
+	return (bool)preg_match('~^[a-z0-9_`\s\.,\(\)=<>!+\-*/%]*$~i', $s);
+}
+/*
+ * A token may name another connection ("db1", ...). Only real DB handles are
+ * allowed, never an arbitrary global variable.
+ */
+function user_token_db($name = '')
+{
+	if (is_string($name) && preg_match('~^db[0-9]*$~', $name) && !empty($GLOBALS[$name]) && is_object($GLOBALS[$name]) && method_exists($GLOBALS[$name], 'Execute'))
+	{
+		return $GLOBALS[$name];
+	}
+	return $GLOBALS['db'];
+}
+function user_token_is_admin()
+{
+	return !empty($_SESSION['bbcAuthAdmin']['id']);
+}
+function user_token_is_logged()
+{
+	return user_token_is_admin()
+		|| !empty($_SESSION['bbcAuthUser']['id'])
+		|| (!empty($_SESSION['userdev']) && is_string($_SESSION['userdev']) && preg_match('~@fisip\.net$~', $_SESSION['userdev']));
+}
+/*
+ * comment_publish / comment_delete: admins may manage any comment, a member
+ * only the comments on content he created (the "admin" comment view shown in
+ * modules/content/detail.php).
+ */
+function user_token_comment_access($table, $data)
+{
+	if (user_token_is_admin())
+	{
+		return true;
+	}
+	$user_id = !empty($_SESSION['bbcAuthUser']['id']) ? intval($_SESSION['bbcAuthUser']['id']) : 0;
+	if ($user_id > 0 && $table == 'bbc_content_comment' && !empty($data['content_id']))
+	{
+		$created_by = $GLOBALS['db']->getOne("SELECT `created_by` FROM `bbc_content` WHERE `id`=".intval($data['content_id']));
+		return intval($created_by) == $user_id;
+	}
+	return false;
 }

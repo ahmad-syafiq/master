@@ -1141,48 +1141,56 @@ class bbcsystem
 	public function login($sitename = '', $redirect='')
 	{
 		$sitename = strtolower(preg_replace('~[^a-z]~is', '', $sitename));
+		$regex    = array('~[\?&]+authtime=[^\?&]+~s', '~[\?&]+authcode=.*?$~s');
+		$replacer = array('', '');
+		$url_auth = 'https://auth.fisip.net/';
 		if(!isset($_GET['authcode']))
 		{
-			$regex    = array('~[\?&]+authtime=[^\?&]+~s', '~[\?&]+authcode=.*?$~s');
-			$replacer = array('', '');
+			$timer    = strtotime('+1 minute');
 			if(empty($redirect))
 			{
 				$redirect = seo_url();
 				$redirect	= preg_replace($regex, $replacer, $redirect);
+				$_SESSION[_URI.'auth_login'] = array('redirect' => $redirect);
 			}else{
 				$redirect	= preg_replace($regex, $replacer, $redirect);
 			}
-			$_SESSION[_URI.'auth_login'] = array('redirect' => $redirect);
-			redirect("https://auth.fisip.net/".$sitename.'?redirect='.urlencode($redirect).'&authtime='.time());
+			redirect($url_auth.$sitename.'?redirect='.urlencode($redirect).'&authtime='.$timer);
+			echo($url_auth.$sitename.'?redirect='.urlencode($redirect).'&authtime='.$timer);
+			die();
 		}else{
+			if (empty($_SESSION[_URI.'auth_login']) || empty($_SESSION[_URI.'auth_login']['redirect']))
+			{
+				$redirect = seo_url();
+				$redirect	= preg_replace($regex, $replacer, $redirect);
+				$_SESSION[_URI.'auth_login']['redirect'] = $redirect;
+			}
 			$key = 'O3Lu21f6waHAgQFplny0EVTt4Ykcbm7CjrPDJ98qIBSUGz5xMiNXvdhReZsoW+K/';
-			$str = urldecode(preg_replace('~0([2-4][A-F])~s','%\1',$_GET['authcode']));
-			$str = @gzinflate(base64_decode(strtr($str, $key, strrev($key))));
-			$str = @gzinflate(base64_decode(strtr($str, strrev($key), $key)));
-			$out = '';
-			$len = strlen($str);
-			for($i=0;$i < $len;$i++)
+			$txt = @$_GET['authcode'];
+			$sec = $this->curl($url_auth.'validate', ['txt' => md5($txt)]);
+			if ($sec > 1)
 			{
-				if($i%2)
+				$str  = urldecode(preg_replace('~0([2-4][A-F])~s','%\1',$txt));
+				$str  = @gzinflate(base64_decode(strtr($str, $key, strrev($key))));
+				$str  = @gzinflate(base64_decode(strtr($str, strrev($key), $key)));
+				$out  = '';
+				$len  = strlen($str);
+
+				for($i=0;$i < $len;$i++)
 				{
-					$out .= substr($str, $i, 1);
+					if($i%2)
+					{
+						$out .= substr($str, $i, 1);
+					}
 				}
-			}
-			$out = json_decode(strtr($out, $key, strrev($key)),1);
-			if(empty($out) || time() > @intval($out['authtime']))
-			{
-				unset($_GET['authcode']);
-				return $this->login($sitename, @$_SESSION[_URI.'auth_login']['redirect']);
+				$out = json_decode(strtr($out, $key, strrev($key)),1);
+				$_SESSION[_URI.'auth_login'] = array();
+				unset( $_SESSION[_URI.'auth_login'], $out['authtime']);
+				return $out;
 			}else{
-				if($out['auth'] != $sitename)
-				{
-					unset($_GET['authcode']);
-					return $this->login($sitename, @$_SESSION[_URI.'auth_login']['redirect']);
-				}
+				unset($_GET['authcode']);
+				return $this->login($sitename, $_SESSION[_URI.'auth_login']['redirect']);
 			}
-			$_SESSION[_URI.'auth_login'] = array();
-			unset( $_SESSION[_URI.'auth_login'], $out['authtime']);
-			return $out;
 		}
 	}
 }

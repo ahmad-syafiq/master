@@ -1,9 +1,12 @@
 <?php  if ( ! defined('_VALID_BBC')) exit('No direct script access allowed');
 
-// block untuk menampilkan apapun script maupun tag yang anda masukkan untuk ditambahkan di website, hanya support dalam bahasa html/javascript maupun PHP
-if(@$config['type']=='php')
+// Block untuk menampilkan tag html/javascript yang dimasukkan admin.
+// Tipe "php" tidak lagi dijalankan: isi block disimpan di database, sehingga
+// siapa pun yang bisa menulis ke bbc_block (SQL injection, akun admin yang
+// dicuri) bisa menanam backdoor yang berjalan di setiap halaman. Pilihan "php"
+// juga sudah tidak tersedia di form admin (_setting.php).
+if (@$config['type'] == 'php')
 {
-	@eval(unhtmlentities($config['content']));
-}else{
-	echo unhtmlentities(@$config['content']);
+	return;
 }
+echo unhtmlentities(@$config['content']);

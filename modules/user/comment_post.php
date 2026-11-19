@@ -76,14 +76,14 @@ if (!empty($config['id']) && !empty($config['expire']) && $config['expire'] > ti
 		$pref = $config['field'];
 		$q    = "INSERT INTO `".$config['table']."` SET
 			`par_id`        = ".$config['par_id'].",
-			`user_id`       = ".$post['user_id'].",
+			`user_id`       = ".intval($post['user_id']).",
 			`date`          = NOW(),
 			`{$pref}_id`    = '".$config['id']."',
 			`{$pref}_title` = '".@addslashes($data['title'])."',
 			`name`          = '".addslashes($post['name'])."',
 			`image`         = '".addslashes($post['image'])."',
-			`email`         = '".$post['email']."',
-			`website`       = '".$post['website']."',
+			`email`         = '".addslashes($post['email'])."',
+			`website`       = '".addslashes($post['website'])."',
 			`content`       = '".addslashes($post['content'])."',
 			`publish`       = '".$publish."'";
 		if($db->Execute($q))

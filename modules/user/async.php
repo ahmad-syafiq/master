@@ -5,6 +5,13 @@ if (@$_GET['id'] == 'cron')
 	include 'async-cron.php';
 	die();
 }
+// Everything else here (run, delete or list jobs, restart the worker) is for
+// administrators only.
+if (empty($_SESSION['bbcAuthAdmin']['id']))
+{
+	header('HTTP/1.1 403 Forbidden');
+	die('Forbidden');
+}
 $sys->set_layout('blank');
 $id = @intval($_GET['id']);
 if (!empty($id))

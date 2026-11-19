@@ -1,6 +1,6 @@
 <?php  if (!defined('_VALID_BBC')) exit('No direct script access allowed');
 
-if (!empty($_GET['q']) && !empty($_GET['token']))
+if (!empty($_GET['q']) && !empty($_GET['token']) && is_string($_GET['q']) && is_string($_GET['token']))
 {
 	header("Content-Type: text/plain");
 	$default = array(
@@ -28,9 +28,27 @@ if (!empty($_GET['q']) && !empty($_GET['token']))
 		$format = @$cfg['format'];
 		$sql    = @$cfg['sql'];
 		$parent = @$cfg['parent'];
-		if (!empty($cfg['db']))
+		$db     = user_token_db(@$cfg['db']);
+		$is_ok  = user_token_is_identifier($id, true)
+			&& (empty($parent) || user_token_is_identifier($parent))
+			&& user_token_sql_is_safe($table)
+			&& user_token_sql_is_safe($field)
+			&& user_token_sql_is_safe($format)
+			&& (empty($sql) || user_token_sql_is_safe($sql));
+		if ($is_ok && !user_token_is_logged())
 		{
-			$db = ${$cfg['db']};
+			// every table named in the FROM part must be public, and no
+			// "table1, table2" join (commas are only allowed inside brackets)
+			$tbl = trim($table);
+			do {
+				$tbl = preg_replace('~\([^()]*\)~', '', $tbl, -1, $n);
+			} while ($n > 0);
+			preg_match_all('~(?:^|join)\s*`?([a-z0-9_]+)`?~i', trim($table), $m);
+			$is_ok = strpos($tbl, ',') === false && !empty($m[1]);
+		}
+		if (!$is_ok)
+		{
+			die();
 		}
 		$field_id = $id;
 		$id       = @intval($_GET['id']);
@@ -38,7 +56,7 @@ if (!empty($_GET['q']) && !empty($_GET['token']))
 		{
 			$sql = 'AND '.$sql;
 		}
-		if (!empty($token['parent']) && !empty($_GET['parent']))
+		if (!empty($token['parent']) && !empty($_GET['parent']) && is_string($_GET['parent']))
 		{
 			$parent = str_replace(array('"',"'",' '), '', $_GET['parent']);
 			if (!empty($parent))

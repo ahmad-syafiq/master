@@ -19,7 +19,7 @@ if (!empty($_POST['secretkey']))
 {
 	$user_id   = @intval($_POST['user_id']);
 	$group_id  = !empty($_POST['group_id']) ? explode(',', $_POST['group_id']) : [0]; // agar bisa multi group_id untuk list notif
-	$group_id  = implode(',', array_filter($group_id));
+	$group_id  = implode(',', array_filter(array_map('intval', $group_id)));
 	$last_id   = @intval($_GET['last_id']);
 	$secretkey = _class('crypt')->decode($_POST['secretkey']);
 	if (!empty($secretkey))
