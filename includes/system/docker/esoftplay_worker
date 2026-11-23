@@ -1,34 +1,41 @@
 #!/bin/sh
 
 # dtach -n /opt/async.socket /bin/sh /var/www/html/master/includes/system/docker/esoftplay_worker
-aDir='/opt/';
-aTmp='async.log';
+aDir='/opt/'
+aTmp='async.log'
 aCMD='/tmp/async.log'
+aErr='/opt/async_error.log'
 aFile="$aDir$aTmp"
+
 if [ -x "/usr/bin/php" ]; then
   aPHP='/usr/bin/php'
 else
   aPHP=$(which php 2>/dev/null)
 fi
+
 # Hentikan skrip dengan pesan error jika biner PHP tidak ditemukan sama sekali
 if [ -z "$aPHP" ] || [ ! -x "$aPHP" ]; then
   echo "Error: Binary PHP tidak ditemukan di sistem." >&2
   exit 1
 fi
 
-mkdir -p $aDir
+mkdir -p "$aDir"
+
+# Pastikan file antrean dan error log tersedia dengan permission tulis untuk PHP-FPM
+[ -f "$aFile" ] || touch "$aFile"
+chmod 777 "$aFile"
+[ -f "$aErr" ] || touch "$aErr"
+chmod 666 "$aErr"
+
 while true
 do
-	if test -f "$aFile"; then
-		cat $aFile > $aCMD && truncate -s 0 $aFile
-		while read line; do
-			if [ ! -z "$line" ]; then
-				$aPHP /var/www/html/master/includes/class/async.php "${line}"
-			fi
-		done < $aCMD
-	else
-		sudo touch $aFile
-		sudo chmod 777 $aFile
-	fi
-	sleep 0.5
+  if [ -s "$aFile" ]; then
+    cat "$aFile" > "$aCMD" && truncate -s 0 "$aFile"
+    while IFS= read -r line || [ -n "$line" ]; do
+      if [ -n "$line" ]; then
+        "$aPHP" /var/www/html/master/includes/class/async.php "$line" >> "$aErr" 2>&1
+      fi
+    done < "$aCMD"
+  fi
+  sleep 0.5
 done
