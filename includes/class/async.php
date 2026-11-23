@@ -164,7 +164,7 @@ if (!class_exists('async'))
 				if (file_exists('/usr/local/bin/tm'))
 				{
 					$data .= "\n".'/bin/rm -f /tmp/async-tmp.txt'
-					."\n".'/usr/local/bin/tm "restart async '.$txt.' di '.$_SERVER['HTTP_HOST'].' sudah selesai" -345399808';
+					."\n".'/usr/local/bin/tm "restart async '.$txt.' di '.$_SERVER['HTTP_HOST'].' sudah selesai" -345399808'; # group monitor - async
 					file_write($act_file, $data, 'a');
 					file_write($tmp_file, date('r'));
 				}else{
