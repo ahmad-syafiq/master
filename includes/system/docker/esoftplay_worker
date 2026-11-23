@@ -5,7 +5,17 @@ aDir='/opt/';
 aTmp='async.log';
 aCMD='/tmp/async.log'
 aFile="$aDir$aTmp"
-aPHP=`which php`
+if [ -x "/usr/bin/php" ]; then
+  aPHP='/usr/bin/php'
+else
+  aPHP=$(which php 2>/dev/null)
+fi
+# Hentikan skrip dengan pesan error jika biner PHP tidak ditemukan sama sekali
+if [ -z "$aPHP" ] || [ ! -x "$aPHP" ]; then
+  echo "Error: Binary PHP tidak ditemukan di sistem." >&2
+  exit 1
+fi
+
 mkdir -p $aDir
 while true
 do
