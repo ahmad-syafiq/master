@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# dtach -n /tmp/async.socket /bin/sh /var/www/html/master/includes/system/docker/esoftplay_worker
+# dtach -n /opt/async.socket /bin/sh /var/www/html/master/includes/system/docker/esoftplay_worker
 aDir='/opt/';
 aTmp='async.log';
 aCMD='/tmp/async.log'

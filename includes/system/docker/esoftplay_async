@@ -28,18 +28,20 @@ start() {
   echo -n "Starting async: "
   touch /opt/async.log
   chmod 777 /opt/async.log
-  dtach -n /tmp/async.socket /bin/bash /var/www/html/master/includes/system/docker/esoftplay_worker
+  rm -f /opt/async.socket
+  dtach -n /opt/async.socket /bin/bash /var/www/html/master/includes/system/docker/esoftplay_worker
 }
 
 stop() {
   echo -n "stopping async: "
-  if [ -S "/tmp/async.socket" ]; then
+  if [ -S "/opt/async.socket" ]; then
     pkill dtach
+    rm -f /opt/async.socket
   fi
 }
 
 status() {
-  if [ -S "/tmp/async.socket" ]; then
+  if [ -S "/opt/async.socket" ]; then
     echo -n "ACTIVE async: $(wc -l < /opt/async.log) - $(wc -l < /tmp/async.log)"
   else
     echo -n "inactive async...."

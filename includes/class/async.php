@@ -179,7 +179,7 @@ if (!class_exists('async'))
 		}
 		public function status()
 		{
-			$exec = '/tmp/async.socket';
+			$exec = '/opt/async.socket';
 			if (file_exists($exec))
 			{
 				if (function_exists('shell_exec'))
