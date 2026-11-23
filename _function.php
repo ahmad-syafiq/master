@@ -271,7 +271,7 @@ function to_string(&$value='')
 	$out = '';
 	if (!empty($value))
 	{
-		$out = preg_replace('~[^0-9a-z\-_\.\s]+~is', '', $value);
+		$out = preg_replace('~[^0-9a-z\-_\,\.\+\:\/\s]+~is', '', $value);
 	}
 	return $out;
 }
