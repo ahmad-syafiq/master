@@ -257,16 +257,16 @@ function get_once($name, $times=1, $period='day')
 	}
 	return $out;
 }
-function to_float(&$value='')
+function to_float($value='')
 {
 	$out = preg_replace('~[^0-9\.]+~s', '', $value??'');
 	return floatval($out);
 }
-function to_int(&$value='')
+function to_int($value='')
 {
 	return intval($value);
 }
-function to_string(&$value='')
+function to_string($value='')
 {
 	$out = '';
 	if (!empty($value))
