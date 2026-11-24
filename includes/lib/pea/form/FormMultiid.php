@@ -153,7 +153,7 @@ class FormMultiid extends FormMulticheckbox
 			UPDATE SQL DARI EDIT FORM
 			==============================================*/
 			$query       = 'SELECT '.$this->tableId.' FROM '.$this->tableName .' '. $this->sqlCondition;
-			$post        = isset($_POST[$name]) ? $_POST[$name] : '';
+			$post        = to_string($_POST[$name]??'');
 			$mainTableId = $this->actionType == 'add' ? 0 : (!empty($this->parent->arrResult[$this->tableId]) ? intval($this->parent->arrResult[$this->tableId]) : intval($this->db->getOne($query)));
 		}else{
 			/*==============================================

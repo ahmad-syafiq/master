@@ -25,7 +25,7 @@ if (!empty($_POST['notif_id']) && !empty($_POST['secretkey']))
 			if ($time > $stamp)
 			{
 				$ok       = false;
-				$notif_id = $_POST['notif_id'];
+				$notif_id = to_string($_POST['notif_id']??'');
 				if (is_numeric($notif_id))
 				{
 					$ok = $db->Update('bbc_user_push_notif', array('status' => 2), $notif_id);

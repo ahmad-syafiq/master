@@ -5,7 +5,7 @@ $session = !empty($_SESSION[bbcAuth]) ? $_SESSION[bbcAuth] : array();
 $alert   = array(
 	'ok'      => 1,
 	'found'   => 0,
-	'checked' => (!empty($_POST['checked']) && is_numeric($_POST['checked'])) ? $_POST['checked'] : 0,
+	'checked' => intval($_POST['checked']??0),
 	);
 if (!empty($session['Alert']))
 {

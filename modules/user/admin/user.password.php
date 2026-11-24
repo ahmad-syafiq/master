@@ -6,7 +6,7 @@ if(isset($_POST['newpass']))
 	$oldpass = @$_POST['oldpass'];
 	$newpass = @$_POST['newpass'];
 	$confirmpass = $_POST['confirmpass'];
-	$q = "SELECT password FROM bbc_user WHERE id='".$user->id."'";
+	$q = "SELECT `password` FROM `bbc_user` WHERE `id`='".$user->id."'";
 	$realpass = decode($db->getOne($q));
 	if($realpass != $oldpass){
 		echo msg(lang('Failed to change password'), 'danger');

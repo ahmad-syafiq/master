@@ -364,7 +364,7 @@ class phpAddAdmin extends phpEasyAdminLib
 						if($input->isMultiLanguage)
 						{
 							$last = '';
-							foreach((array)$_POST[$input->name] AS $i => $v)
+							foreach(to_array($_POST[$input->name]??[]) AS $i => $v)
 							{
 								$t = $v ? $v : $last;
 								if(@$input->nl2br)

@@ -2,7 +2,8 @@
 
 if(!empty($_GET['temp_id']) && $_GET['temp_id'] > 0)
 {
-	$q = "SELECT code FROM bbc_account_temp WHERE id=".$_GET['temp_id'];
+	$i = intval($_GET['temp_id']);
+	$q = "SELECT code FROM bbc_account_temp WHERE id=".$i;
 	$c = $db->getOne($q);
 	if($db->Affected_rows())
 	{

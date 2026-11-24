@@ -43,8 +43,8 @@ function _is_email_unique(&$form)
 	$output = '';
 	if($form->is_updated)
 	{
-		$email = strtolower($_POST['email']);
-		$q = "SELECT 1 FROM bbc_account WHERE email='{$email}' AND id!=".@intval($form->table_id);
+		$email = strtolower(to_string($_POST['email']));
+		$q = "SELECT 1 FROM `bbc_account` WHERE `email`='{$email}' AND `id`!=".@intval($form->table_id);
 		if($db->getOne($q))
 		{
 			$output = 'email is already in use by another user';

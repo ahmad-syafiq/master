@@ -257,6 +257,14 @@ function get_once($name, $times=1, $period='day')
 	}
 	return $out;
 }
+function to_array($value='')
+{
+	if (!empty($value))
+	{
+		$value = is_array($value) ? array_map(__FUNCTION__, $value) : (is_numeric($value) ? to_float($value) : to_string($value));
+	}
+	return $value;
+}
 function to_float($value='')
 {
 	$out = preg_replace('~[^0-9\.]+~s', '', $value??'');
@@ -269,9 +277,9 @@ function to_int($value='')
 function to_string($value='')
 {
 	$out = '';
-	if (!empty($value))
+	if (isset($value) && is_string($value))
 	{
-		$out = preg_replace('~[^0-9a-z\-_\,\.\+\:\/\s]+~is', '', $value);
+		$out = preg_replace('~[\\\\\'\"|\x00\x1a]+~u', '', $value) ?? '';
 	}
 	return $out;
 }

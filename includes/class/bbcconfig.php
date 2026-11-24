@@ -121,11 +121,11 @@ class bbcconfig
 							$data['option'] = @$data['option'];
 							if(!is_array($data['option']) || count($data['option']) == 1)
 							{
-								$post[$name] = isset($_POST[$this->name][$name]) ? $_POST[$this->name][$name] : 0;
+								$post[$name] = to_int($_POST[$this->name][$name]??'');
 								break;
 							}
 						default:
-							$post[$name] = @$_POST[$this->name][$name];
+							$post[$name] = to_string($_POST[$this->name][$name]??'');
 						break;
 					}
 				}
@@ -180,7 +180,7 @@ class bbcconfig
 
 				$type  = strtolower($data['type']);
 				$value = isset($config[$id]) ? $config[$id] : @$data['default'];
-				$value = htmlentities($value??'');
+				$value = htmlentities_r($value??'');
 				$input = $opt = '';
 				switch($type)
 				{

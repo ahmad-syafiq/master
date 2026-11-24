@@ -3,23 +3,23 @@
 if(!empty($_POST['Submit']))
 {
   $msg = 'No action is executed..';
-  $_POST['id'] = @intval($_POST['id']);
+  $id  = @intval($_POST['id']);
   switch(strtolower($_POST['Submit']))
   {
     case 'export':
-      param_copy($template_id, $_POST['id']);
-      $q = "UPDATE bbc_template SET last_copty_to=".$_POST['id']." WHERE id=$template_id";
+      param_copy($template_id, $id);
+      $q = "UPDATE bbc_template SET last_copty_to=".$id." WHERE id=$template_id";
       $db->Execute($q);
       $msg = 'Export parameter has completed.';
     break;
     case 'import':
-      param_copy($_POST['id'], $template_id);
-      $q = "UPDATE bbc_template SET last_copy_from=".$_POST['id'].", syncron_to=0 WHERE id=$template_id";
+      param_copy($id, $template_id);
+      $q = "UPDATE bbc_template SET last_copy_from=".$id.", syncron_to=0 WHERE id=$template_id";
       $db->Execute($q);
       $msg = 'Import parameter has completed.';
     break;
     case 'syncron':
-      param_syncron($template_id, $_POST['id']);
+      param_syncron($template_id, $id);
       $msg = 'Parameter syncronization has completed.';
     break;
     case 'reset':
@@ -27,7 +27,7 @@ if(!empty($_POST['Submit']))
       $msg = 'Parameter has been reset.';
     break;
     case 'syncron to':
-      param_syncron($_POST['id'], $template_id);
+      param_syncron($id, $template_id);
       $msg = 'Parameter syncronization has completed.';
     break;
     case 'download':

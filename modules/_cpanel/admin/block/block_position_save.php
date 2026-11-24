@@ -11,7 +11,7 @@ switch(@$_GET['do'])
 			foreach($r AS $dt) {
 				$r_block[$dt['id']] = $dt;
 			}
-			foreach($_POST AS $pos => $blocks)
+			foreach(to_array($_POST) AS $pos => $blocks)
 			{
 				if(preg_match('~^position_[0-9]+$~s', $pos))
 				{
@@ -150,7 +150,7 @@ function block_add()
 	$last_title = '';
 	foreach(lang_assoc() AS $lang_id => $d)
 	{
-		$title = @$_POST['title'][$lang_id];
+		$title = to_string($_POST['title'][$lang_id]??'');
 		if(empty($title)) $title = $last_title;
 		else $last_title = $title;
 		$q = "INSERT INTO bbc_block_text

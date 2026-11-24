@@ -42,7 +42,7 @@ if (!empty($_POST['shortcut_submit_update']))
 	$db->Execute("UPDATE bbc_cpanel SET is_shortcut=0 WHERE 1");
 	if (!empty($_POST['menus']))
 	{
-		$ids = $_POST['menus'];
+		$ids = to_array($_POST['menus']);
 		ids($ids);
 		if (!empty($ids))
 		{

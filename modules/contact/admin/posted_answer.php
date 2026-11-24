@@ -33,7 +33,7 @@ Sent: '.date('l, F jS, Y H:i:s', strtotime($data['post_date'])).'
 	, $message
 	, array($email, config('email', 'name'))
 	);
-	$answer = $_POST['answer']."\n\n by ".$user->name;
+	$answer = to_string($_POST['answer'])."\n\n by ".$user->name;
 	$q = "UPDATE contact SET answer='{$answer}', answer_date=NOW(), followed=1 WHERE id=$id";
 	$db->Execute($q);
 	redirect($Bbc->mod['circuit'].'.posted_detail&id='.$id);

@@ -1115,7 +1115,7 @@ class phpRollAdmin extends phpEasyAdminLib
 						if (!empty($_POST[$this->formName.'_orderby']))
 						{
 							$query = '';
-							foreach((array)$_POST[$this->input->system_id->name] as $i => $id)
+							foreach(to_array($_POST[$this->input->system_id->name]??[]) as $i => $id)
 							{
 								foreach ($this->arrInput as $input)
 								{
@@ -1129,7 +1129,7 @@ class phpRollAdmin extends phpEasyAdminLib
 							$this->error = !$this->actionOnSave(false);
 							if ($this->isActionExecute)
 							{
-								foreach((array)$_POST[$this->input->system_id->name] as $i => $id)
+								foreach(to_array($_POST[$this->input->system_id->name]??[]) as $i => $id)
 								{
 									$lang_text = array();
 									$query = "UPDATE ". $this->setQuoteSQL($this->table) ." SET ";

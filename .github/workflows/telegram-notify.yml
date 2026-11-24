@@ -1,0 +1,39 @@
+name: Telegram Push Notification
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    if: trim(github.event.head_commit.message) != '.'
+    steps:
+      - name: Susun daftar commit
+        id: commits
+        run: |
+          # Filter commit bukan titik ".", escape karakter markdown Telegram, lalu format menjadi [-](url) pesan
+          LIST=$(jq -r '
+            .commits[]
+            | select(.message | gsub("^\\s+|\\s+$"; "") != ".")
+            | .message as $msg
+            | ($msg | gsub("([_*`\\[])"; "\\\\\\1")) as $clean_msg
+            | "[-](\(.url)) \($clean_msg)"
+          ' "$GITHUB_EVENT_PATH")
+
+          {
+            echo "list<<EOF"
+            echo "$LIST"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Kirim notifikasi ke Telegram
+        if: steps.commits.outputs.list != ''
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO_ESOFT }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          format: markdown
+          message: |
+            /${{ github.event.repository.name }} tolong di update ya:
+            ${{ steps.commits.outputs.list }}

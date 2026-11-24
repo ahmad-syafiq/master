@@ -35,7 +35,7 @@ if($prefix == 'edit_')
 		$_POST['edit_is_config'] = @intval($_POST['edit_is_config']);
 		$config = ($_POST['edit_is_config']=='1') ? json_encode($_POST['config']) : '';
 		$q = "UPDATE bbc_content_cat SET
-			par_id		= ".$_POST['edit_par_id']."
+			par_id		= ".intval($_POST['edit_par_id'])."
 		{$add_sql}
 		,	is_config	= ".$_POST['edit_is_config']."
 		,	config		= '".$config."'
@@ -45,7 +45,7 @@ if($prefix == 'edit_')
 		$db->Execute($q);
 		$q = "SELECT lang_id FROM bbc_content_cat_text WHERE cat_id=$category_id";
 		$r_key_lang = $db->getCol($q);
-		foreach((array)$_POST['edit_text'] AS $lang_id => $dt)
+		foreach(to_array($_POST['edit_text']??[]) AS $lang_id => $dt)
 		{
 			if(in_array($lang_id, $r_key_lang)) {
 				$q = "UPDATE bbc_content_cat_text SET
@@ -94,8 +94,8 @@ if($prefix == 'edit_')
 		$_POST['add_is_config'] = @intval($_POST['add_is_config']);
 		$config = $_POST['add_is_config'] ? json_encode($_POST['config']) : '';
 		$q = "INSERT INTO bbc_content_cat SET
-			par_id		= ".$_POST['add_par_id']."
-		,	type_id		= ".$_POST['add_type_id']."
+			par_id		= ".intval($_POST['add_par_id'])."
+		,	type_id		= ".intval($_POST['add_type_id'])."
 		{$add_sql}
 		,	is_config	= ".$_POST['add_is_config']."
 		,	config		= '".$config."'
@@ -106,7 +106,7 @@ if($prefix == 'edit_')
 		$tmp_category_title = $_POST['add_text'][lang_id()]['title'];
 		$q = "SELECT lang_id FROM bbc_content_cat_text WHERE cat_id=$tmp_category_id";
 		$r_key_lang = $db->getCol($q);
-		foreach((array)$_POST['add_text'] AS $lang_id => $dt)
+		foreach(to_array($_POST['add_text']??[]) AS $lang_id => $dt)
 		{
 			if(in_array($lang_id, $r_key_lang)) {
 				$q = "UPDATE bbc_content_cat_text SET
@@ -137,7 +137,7 @@ if($is_post)
 	if(!empty($av_menu))
 	{
 		$module_id = $sys->get_module_id('content');
-		foreach((array)$av_menu AS $menu)
+		foreach(to_array($av_menu??[]) AS $menu)
 		{
 			if($menu['code']=='delete')
 			{
@@ -161,22 +161,16 @@ if($is_post)
 				if($db->Execute($q))
 				{
 					$menu_id = $db->Insert_ID();
-					$q = "SELECT lang_id FROM bbc_menu_text WHERE menu_id=$menu_id";
+					$q = "SELECT `lang_id` FROM `bbc_menu_text` WHERE `menu_id`=$menu_id";
 					$r_key_lang = $db->getCol($q);
 					// INSERT TITLE
 					foreach((array)$menu['titles'] AS $lang_id => $title)
 					{
 						if(in_array($lang_id, $r_key_lang))
 						{
-							$q = "UPDATE bbc_menu_text SET title	= '".$title."'
-							WHERE menu_id = ".$menu_id." AND lang_id		= $lang_id
-							";
+							$q = "UPDATE `bbc_menu_text` SET `title`='{$title}' WHERE `menu_id`={$menu_id} AND `lang_id`={$lang_id}";
 						}else{
-							$q = "INSERT INTO bbc_menu_text
-							SET menu_id = ".$menu_id."
-							, title			= '".$title."'
-							, lang_id		= $lang_id
-							";
+							$q = "INSERT INTO `bbc_menu_text` SET `menu_id`={$menu_id}, `title`= '{$title}', `lang_id`={$lang_id}";
 						}
 						$db->Execute($q);
 					}

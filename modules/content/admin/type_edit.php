@@ -7,16 +7,16 @@ $sys->link_js('type_edit.js');
 if(isset($_POST['submit_update']))
 {
 	$dt = array(
-	  'title'  => $_POST['title']
-	, 'detail' => json_encode($_POST['detail'])
-	, 'list'   => json_encode($_POST['list'])
-	, 'menu_id'=> @intval($_POST['menu_id'])
-	, 'active' => @intval($_POST['active'])
+	  'title'  => to_string($_POST['title']),
+	  'detail' => json_encode($_POST['detail']),
+	  'list'   => json_encode($_POST['list']),
+	  'menu_id'=> @intval($_POST['menu_id']),
+	  'active' => @intval($_POST['active'])
 	);
 	$add_msg = '';
 	if($id > 0)
 	{
-		$q = "SELECT menu_id FROM bbc_content_type WHERE id=$id";
+		$q = "SELECT `menu_id` FROM `bbc_content_type` WHERE `id`=$id";
 		$menu_id = $db->getOne($q);
 		if($menu_id)
 		{
@@ -91,7 +91,7 @@ if(isset($_POST['submit_update']))
 				if($db->Execute($q))
 				{
 					$menu_id = $db->Insert_ID();
-					$q = "SELECT lang_id FROM bbc_menu_text WHERE menu_id=$menu_id";
+					$q = "SELECT `lang_id` FROM `bbc_menu_text` WHERE `menu_id`=$menu_id";
 					$r_key_lang = $db->getCol($q);
 					// INSERT TITLE
 					foreach((array)$menu['titles'] AS $lang_id => $title)
@@ -132,7 +132,7 @@ $conf_det   = content_config_detail();
 if($id > 0)
 {
 	$type_form_title = 'Edit Type';
-	$q = "SELECT * FROM bbc_content_type WHERE id=$id";
+	$q = "SELECT * FROM `bbc_content_type` WHERE `id`=$id";
 	$data = $db->getRow($q);
 	$data['detail']= config_decode($data['detail']);
 	$data['list']  = config_decode($data['list']);

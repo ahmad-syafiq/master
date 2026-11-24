@@ -9,7 +9,7 @@ $add_sql  = !empty($data) ? 'WHERE id='.$id : '';
 if (!empty($_POST['add_username']))
 {
 	$exist = 0;
-	$usr   = trim(strtolower($_POST['add_username']));
+	$usr   = trim(strtolower(to_string($_POST['add_username'])));
 	$q     = "SELECT 1 FROM `bbc_user` WHERE `username`='{$usr}'";
 	$exist = $db->getOne($q);
 	if (!$exist)
@@ -67,7 +67,7 @@ function cpanel_user_profile($id=0)
 	$account = $db->getRow("SELECT * FROM bbc_account WHERE user_id={$id}");
 	if (empty($account))
 	{
-		$name = $_POST[$form3->edit->input->name->name];
+		$name = to_string($_POST[$form3->edit->input->name->name]);
 		$username = trim(strtolower($data['username']));
 		$db->Execute("INSERT INTO bbc_account SET `user_id`={$id}, `name`='{$name}', `email`='{$username}', `username`='{$username}'");
 		$db->Execute("UPDATE bbc_user SET `username`='{$username}', created=NOW() WHERE id={$id}");

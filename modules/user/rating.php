@@ -17,7 +17,7 @@ if (!empty($_POST['id'])
 	$id     = intval($_POST['id']);
 	$value  = intval($_POST['value']);
 	$value  = $value > 0 && $value < 6 ? $value : 1;
-	$params = is_string($_POST['token']) ? json_decode(decode($_POST['token']), 1) : array();
+	$params = is_string($_POST['token']) ? to_array(json_decode(decode($_POST['token']), 1)) : array();
 	$table  = '';
 	$voter  = 'voter';
 	if (!empty($params) && is_array($params))

@@ -367,7 +367,7 @@ class FormFile extends Form
 
 			// dapatkan namaFile yang lama dulu
 			$old_sql 	= "SELECT ". $this->fieldName ." FROM ". $this->tableName
-								.	" WHERE ". $this->tableId ." ='". $_POST[$this->formName."_".$this->tableId][$i] ."'";
+								.	" WHERE ". $this->tableId ." ='". to_string($_POST[$this->formName."_".$this->tableId][$i]) ."'";
 			$oldFileName= $this->db->GetOne( $old_sql );
 
 			//lakukan upload jika tombol submit delete file tidak dipencet

@@ -11,7 +11,7 @@ if (!empty($_GET['q']) && !empty($_GET['token']) && is_string($_GET['q']) && is_
 		// 'sql'    => 'par_id=0 AND active=1' # optional
 		// 'parent' => 'par_id',
 		);
-	$token = json_decode(decode(str_replace(' ', '+', urldecode($_GET['token']))), 1);
+	$token = to_array(json_decode(decode(str_replace(' ', '+', urldecode($_GET['token']))), 1));
 	if (!empty($token['expire']) && $token['expire'] > time())
 	{
 		$sql = '';

@@ -2,9 +2,10 @@
 
 if(!empty($_POST['template_name']))
 {
-	$q = "UPDATE bbc_config SET params='".json_encode($_POST['template_name'])."' WHERE name='template' AND module_id=0";
+	$t = to_strimg($_POST['template_name']);
+	$q = "UPDATE `bbc_config` SET `params`='".json_encode($t)."' WHERE `name`='template' AND `module_id`=0";
 	$db->Execute($q);
-	$_CONFIG['template'] = $_POST['template_name'];
+	$_CONFIG['template'] = $t;
 	$sys->clean_cache();
 	echo msg("template has been updated.");
 }

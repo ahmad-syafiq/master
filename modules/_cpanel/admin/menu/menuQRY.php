@@ -140,7 +140,7 @@ function menu_update_insert($id=0)
     if (empty($is_admin))
     {
       $clean = true;
-      $title = !empty($_POST['add_title']) ? $_POST['add_title'][lang_id()] : $_POST['edit_title'][lang_id()];
+      $title = to_string($_POST['add_title'][lang_id()] ?? $_POST['edit_title'][lang_id()] ?? '');
       $seo   = menu_seo($menu['seo'], $title, $id);
 
       if ($seo != $menu['seo'])

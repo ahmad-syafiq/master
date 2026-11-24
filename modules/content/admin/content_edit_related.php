@@ -1,6 +1,6 @@
 <?php  if ( ! defined('_VALID_BBC')) exit('No direct script access allowed');
 
-$ids    = @$_POST['ids'];
+$ids    = to_string($_POST['ids']??'');
 $output = array(
 	'success' => 0,
 	'value'   => '',

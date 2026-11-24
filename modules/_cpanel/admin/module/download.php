@@ -1,20 +1,20 @@
 <?php defined( '_VALID_BBC' ) or die( 'Restricted access' );
 
-$_GET['module_id'] = intval($_GET['module_id']);
+$module_id = @intval($_GET['module_id'] ;
 $param = array();
 
 //DATA PARAM
-$q="SELECT * FROM bbc_module WHERE id=".$_GET['module_id'];
+$q="SELECT * FROM `bbc_module` WHERE id=".$module_id;
 $param['data']			= $db->getRow($q);
 if(!$db->Affected_rows()) die();
 
 //DATA CONFIG
-$q="SELECT name, params FROM bbc_config WHERE module_id=".$_GET['module_id'];
+$q="SELECT name, params FROM bbc_config WHERE module_id=".$module_id;
 $param['config'] = $db->getAssoc($q);
 
 //DATA EMAIL TEMPLATE
 $r_lang = get_lang();
-$q="SELECT * FROM bbc_email WHERE module_id=".$_GET['module_id'];
+$q="SELECT * FROM bbc_email WHERE module_id=".$module_id;
 $param['email']	= $db->getAssoc($q);
 if(!empty($param['email']))
 {
@@ -31,7 +31,7 @@ if(!empty($param['email']))
 }
 
 //DATA MENU
-$q="SELECT * FROM bbc_menu WHERE module_id=".$_GET['module_id']." ORDER BY is_admin DESC, par_id ASC, orderby ASC, id ASC";
+$q="SELECT * FROM bbc_menu WHERE module_id=".$module_id." ORDER BY is_admin DESC, par_id ASC, orderby ASC, id ASC";
 $param['menu'] = $db->getAll($q);
 $r_lang = get_lang();
 $ids = $r_text = array();
@@ -64,7 +64,7 @@ $param['directory'] = $arr;
 $r_lang = get_lang();
 $q = "SELECT c.code, t.lang_id, t.content FROM bbc_lang_text AS t
 LEFT JOIN bbc_lang_code AS c ON (c.id=t.code_id)
-WHERE c.module_id=".$_GET['module_id'];
+WHERE c.module_id=".$module_id;
 $r = $db->getAssoc($q);
 $lang = array();
 foreach($r AS $code => $dt) {

@@ -31,13 +31,13 @@ if ($show_form)
 }
 if (!empty($_POST['config_detail_submit']) && $is_single_type)
 {
-	$detail = json_encode($_POST['detail']);
+	$detail = json_encode(to_array($_POST['detail']??[]));
 	$q = "UPDATE `bbc_content_type` SET `detail`='{$detail}'";
 	$db->Execute($q);
 }
 if (!empty($_POST['config_list_submit']) && $is_single_type)
 {
-	$list = json_encode($_POST['list']);
+	$list = json_encode(to_array($_POST['list']??[]));
 	$q = "UPDATE `bbc_content_type` SET `list`='{$list}'";
 	$db->Execute($q);
 }

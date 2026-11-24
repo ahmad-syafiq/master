@@ -32,8 +32,8 @@ if(isset($_POST['name']))
 	if($exist > 0)
 	{
 		$q="UPDATE bbc_user_group
-				SET `name`	      = '".$_POST['name']."'
-				,	`desc`		      = '".$_POST['desc']."'
+				SET `name`	      = '".to_string($_POST['name']??'')."'
+				,	`desc`		      = '".to_string($_POST['desc']??'')."'
 				,	`menus`		      = '".repairImplode($_POST['menus'])."'
 				,	`cpanels`	      = '".repairImplode($_POST['cpanels'])."'
 				,	`score`         = ".$_POST['score']."
@@ -44,8 +44,8 @@ if(isset($_POST['name']))
 		$succeed = $db->Execute($q);
 	}else{
 		$q="INSERT INTO bbc_user_group
-				SET `name`	      = '".$_POST['name']."'
-				,	`desc`		      = '".$_POST['desc']."'
+				SET `name`	      = '".to_string($_POST['name']??'')."'
+				,	`desc`		      = '".to_string($_POST['desc']??'')."'
 				,	`menus`		      = '".repairImplode($_POST['menus'])."'
 				,	`cpanels`	      = '".repairImplode($_POST['cpanels'])."'
 				,	`score`         = ".$_POST['score']."
