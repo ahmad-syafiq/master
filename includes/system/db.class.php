@@ -214,8 +214,6 @@ class bbcSQL
 		$result = false;
 		if (!empty($stat_r) && preg_match('~\s{0,}select\s+~is', $sql))
 		{
-			$result = @mysqli_query($this->link_read, $sql);
-			$this->echoerror($sql, $this->link_read, $stat_r);
 			try{
 				$result = @mysqli_query($this->link_read, $sql);
 				$this->echoerror($sql, $this->link_read, $stat_r);
