@@ -272,7 +272,7 @@ class FormMultiform extends FormMultiinput
 				$input->name = preg_replace('~\[\]$~is', '', $input->name);
 			}
 			$datas = $this->getElements('data', 'update');
-			$ids   = to_string($_POST[$this->formName.'_'.$this->fieldName.'_'.$this->referenceField['tbl_id']]??'');
+			$ids   = to_array($_POST[$this->formName.'_'.$this->fieldName.'_'.$this->referenceField['tbl_id']]??[]);
 			foreach ((array)$ids as $j => $id)
 			{
 				$is_filled = $id ? true : false;

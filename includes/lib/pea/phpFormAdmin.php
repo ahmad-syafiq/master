@@ -487,6 +487,10 @@ class Form
 	// clean SQL string
 	function cleanSQL($q)
 	{
+		if (empty($q))
+		{
+			return '';
+		}
 		$o = preg_replace('~\\{2,}(\'|")~s', '\\$1', $q);
 		$o = preg_replace("~([^\\\])('|\")~s", '$1\\\$2', $o);
 		return $o;
