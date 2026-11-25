@@ -6,6 +6,10 @@
 // must be plain identifiers, the field must be a sort field, and the raw SQL
 // condition / order from the token is no longer used (the rows are selected by
 // the posted ids instead, which gives the same current values).
+if (!user_token_is_logged())
+{
+	output_json(array('success' => 0, 'output' => 'Access denied'));
+}
 if (!empty($_POST['token']) && !empty($_POST['ids']) && is_string($_POST['token']) && is_string($_POST['ids']))
 {
 	_func('user');
@@ -13,7 +17,7 @@ if (!empty($_POST['token']) && !empty($_POST['ids']) && is_string($_POST['token'
 	$token  = json_decode(decode(str_replace(' ', '+', urldecode($_POST['token']))), 1);
 	$ids    = trim(preg_replace('~[^0-9,]+~s', ',', $_POST['ids']), ',');
 	$ids    = implode(',', array_unique(array_filter(array_map('intval', explode(',', $ids)))));
-	if (!empty($ids) && is_array($token) && !empty($token['expire']) && $token['expire'] > time() && user_token_is_logged())
+	if (!empty($ids) && is_array($token) && !empty($token['expire']) && $token['expire'] > time())
 	{
 		// extract($token);// tableId, fieldName, tableName, sqlCondition, sqlOrder
 		$tableId   = @$token['tableId'];

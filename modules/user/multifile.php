@@ -1,5 +1,10 @@
 <?php  if (!defined('_VALID_BBC')) exit('No direct script access allowed');
 
+if (!user_token_is_logged())
+{
+	output_json(array('error' => 'Access denied'));
+}
+
 $file  = new user_upload(isset($_GET['qqfile']));
 if (!empty($_GET['token']))
 {
@@ -9,14 +14,7 @@ if (!empty($_GET['token']))
 	unset($get['mod'], $get['qqfile'], $get['id']);
 	$param = json_decode(decode(str_replace(' ', '+', implode('', $get))), 1);
 }
-// Only admin forms use this uploader. The token is encrypted with _SALT,
-// which must be treated as leaked, so nothing in it is trusted for paths,
-// extensions or image-library settings.
-if (empty($_SESSION['bbcAuthAdmin']['id']))
-{
-	output_json(array('error' => 'Access denied'));
-	die();
-}
+
 $multifile_safe_path = function($path) {
 	$path = is_string($path) ? trim($path) : '';
 	return (strpos($path, '..') === false && strpos($path, "\0") === false && preg_match('~^[a-z0-9_\-/]*$~i', $path)) ? ltrim($path, '/') : false;

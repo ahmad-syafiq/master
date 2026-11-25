@@ -3,15 +3,15 @@
 #!/includes/lib/pea/form/FormMultiid.php
 // FormMultiid is only used by admin forms. The token is decoded with the public
 // _SALT, so every identifier / SQL fragment in it is validated.
+
+$output = array('success' => 0, 'value' => '', 'html' => '');
+if (!user_token_is_logged())
+{
+	output_json($output);
+}
 if (!empty($_POST) && !empty($_POST['id']) && !empty($_POST['token']) && is_string($_POST['id']) && is_string($_POST['token']))
 {
 	_func('user');
-	$output = array('success' => 0, 'value' => '', 'html' => '');
-	if (!user_token_is_admin())
-	{
-		output_json($output);
-		die();
-	}
 	$ids    = user_formmultiid_ids($_POST['id']);
 	$token  = json_decode(decode(str_replace(' ', '+', urldecode($_POST['token']))), 1);;
 	if (!empty($ids) && is_array($token) && !empty($token['expire']) && $token['expire'] > time())
@@ -41,7 +41,6 @@ if (!empty($_POST) && !empty($_POST['id']) && !empty($_POST['token']) && is_stri
 			if (!$is_ok)
 			{
 				output_json($output);
-				die();
 			}
 			$q = "SELECT {$value}, {$label} FROM {$table} WHERE {$value} IN ({$ids})";
 			if (!empty($sql))
@@ -68,12 +67,11 @@ if (!empty($_POST) && !empty($_POST['id']) && !empty($_POST['token']) && is_stri
 		}
 	}
 	output_json($output);
-	die();
 }
 function user_formmultiid_ids($value)
 {
 	$str = preg_replace('~[^0-9,]+~s', ',', $value);
-	$r   = array_unique(explode(',', $str));
+	$r   = array_map('intval', array_unique(explode(',', $str)));
 	return trim(implode(',', $r), ',');
 }
 die();

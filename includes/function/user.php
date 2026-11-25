@@ -778,9 +778,7 @@ function user_token_is_admin()
 }
 function user_token_is_logged()
 {
-	return user_token_is_admin()
-		|| !empty($_SESSION['bbcAuthUser']['id'])
-		|| (!empty($_SESSION['userdev']) && is_string($_SESSION['userdev']) && preg_match('~@fisip\.net$~', $_SESSION['userdev']));
+	return user_token_is_admin() || !empty($_SESSION['bbcAuthUser']['id']);
 }
 /*
  * comment_publish / comment_delete: admins may manage any comment, a member

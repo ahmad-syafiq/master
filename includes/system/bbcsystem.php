@@ -1146,7 +1146,7 @@ class bbcsystem
 		$url_auth = 'https://auth.fisip.net/';
 		if(!isset($_GET['authcode']))
 		{
-			$timer    = strtotime('+1 minute');
+			$timer    = strtotime('+5 minute');
 			if(empty($redirect))
 			{
 				$redirect = seo_url();

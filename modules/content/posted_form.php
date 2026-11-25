@@ -115,7 +115,7 @@ if(content_posted_permission())
 			);
 	}
 	$imgs = (encode(json_encode($params)));
-	$temp = str_replace(_ROOT, _URL, _CACHE).$temp.'/';
+	$temp = _URL.'images/tmp/'.$temp.'/';
 	$exts = array();
 	$rext = content_ext();
 	foreach ($rext as $val => $r1)

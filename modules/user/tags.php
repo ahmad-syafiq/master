@@ -1,5 +1,10 @@
 <?php  if (!defined('_VALID_BBC')) exit('No direct script access allowed');
 
+if (!user_token_is_logged())
+{
+	die('Access denied');
+}
+
 if (!empty($_GET['q']) && !empty($_GET['token']) && is_string($_GET['q']) && is_string($_GET['token']))
 {
 	header("Content-Type: text/plain");
@@ -11,7 +16,7 @@ if (!empty($_GET['q']) && !empty($_GET['token']) && is_string($_GET['q']) && is_
 		// 'sql'    => 'par_id=0 AND active=1' # optional
 		// 'parent' => 'par_id',
 		);
-	$token = to_array(json_decode(decode(str_replace(' ', '+', urldecode($_GET['token']))), 1));
+	$token = json_decode(decode(str_replace(' ', '+', urldecode($_GET['token']))), 1);
 	if (!empty($token['expire']) && $token['expire'] > time())
 	{
 		$sql = '';
@@ -35,7 +40,7 @@ if (!empty($_GET['q']) && !empty($_GET['token']) && is_string($_GET['q']) && is_
 			&& user_token_sql_is_safe($field)
 			&& user_token_sql_is_safe($format)
 			&& (empty($sql) || user_token_sql_is_safe($sql));
-		if ($is_ok && !user_token_is_logged())
+		if ($is_ok)
 		{
 			// every table named in the FROM part must be public, and no
 			// "table1, table2" join (commas are only allowed inside brackets)
@@ -81,8 +86,9 @@ if (!empty($_GET['q']) && !empty($_GET['token']) && is_string($_GET['q']) && is_
 				echo implode('|', $r)."\n";
 			}
 		}else{
-			$name = preg_replace('~[^a-z0-9\s\.\,]~is', '', $_GET['q']);
-			$q    = "SELECT {$format} AS `format`, {$field} AS `title`, {$field_id} AS `id` FROM {$table} {$field} LIKE '%{$name}%' {$sql} ORDER BY {$field} ASC LIMIT 1000";
+			// $name = preg_replace('~[^a-z0-9\s\.\,]~is', '', $_GET['q']);
+			$name = to_string($_GET['q']);
+			$q    = "SELECT {$format} AS `format`, {$field} AS `title`, {$field_id} AS `id` FROM {$table} {$field} LIKE '%{$name}%' {$sql} ORDER BY {$field} ASC LIMIT 100";
 			$r    = $db->cacheGetAll($q);
 			foreach ($r as $d)
 			{

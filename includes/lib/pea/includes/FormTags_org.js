@@ -393,9 +393,9 @@ _Bbc(function ($) {
 			e.minChars = e.minchars || 2,
 			e.delay = e.delay || 10,
 			e.matchCase = e.matchcase || 0,
-			e.matchSubset = e.matchsubset || 1,
-			e.matchContains = e.matchcontains || 1,
-			e.cacheLength = e.cachelength || 10,
+			e.matchSubset = e.matchsubset || 0, // 1=ngambil dr hasil sebelumnya, 0=ngambil lagi dr server
+			e.matchContains = e.matchcontains || 1, // 1=contains, 0=start with
+			e.cacheLength = e.cachelength || 10, // total cache length saved in browser
 			e.mustMatch = e.mustmatch || 0,
 			e.extraParams = e.extraparams || {},
 			e.selectFirst = e.selectfirst || !0,
@@ -461,9 +461,9 @@ _Bbc(function ($) {
 			e.minChars = e.minchars || 2,
 			e.delay = e.delay || 10,
 			e.matchCase = e.matchcase || 0,
-			e.matchSubset = e.matchsubset || 1,
-			e.matchContains = e.matchcontains || 1,
-			e.cacheLength = e.cachelength || 10,
+			e.matchSubset = e.matchsubset || 0, // 1=ngambil dr hasil sebelumnya, 0=ngambil lagi dr server
+			e.matchContains = e.matchcontains || 1, // 1=contains, 0=start with
+			e.cacheLength = e.cachelength || 10, // total cache length saved in browser
 			e.mustMatch = e.mustmatch || 0,
 			e.extraParams = e.extraparams || {},
 			e.selectFirst = e.selectfirst || !0,
