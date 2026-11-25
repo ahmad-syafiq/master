@@ -7,7 +7,6 @@ on:
 jobs:
   notify:
     runs-on: ubuntu-latest
-    if: trim(github.event.head_commit.message) != '.'
     steps:
       - name: Susun daftar commit
         id: commits
