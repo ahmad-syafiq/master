@@ -33,7 +33,7 @@ if($prefix == 'edit_')
 			}
 		}
 		$_POST['edit_is_config'] = @intval($_POST['edit_is_config']);
-		$config = ($_POST['edit_is_config']=='1') ? json_encode($_POST['config']) : '';
+		$config = ($_POST['edit_is_config']=='1') ? json_encode(to_array($_POST['config'])) : '';
 		$q = "UPDATE bbc_content_cat SET
 			par_id		= ".intval($_POST['edit_par_id'])."
 		{$add_sql}
@@ -92,7 +92,7 @@ if($prefix == 'edit_')
 			}
 		}
 		$_POST['add_is_config'] = @intval($_POST['add_is_config']);
-		$config = $_POST['add_is_config'] ? json_encode($_POST['config']) : '';
+		$config = $_POST['add_is_config'] ? json_encode(to_array($_POST['config'])) : '';
 		$q = "INSERT INTO bbc_content_cat SET
 			par_id		= ".intval($_POST['add_par_id'])."
 		,	type_id		= ".intval($_POST['add_type_id'])."
