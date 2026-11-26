@@ -2,7 +2,7 @@
 
 if(!empty($_POST['template_name']))
 {
-	$t = to_strimg($_POST['template_name']);
+	$t = to_string($_POST['template_name']);
 	$q = "UPDATE `bbc_config` SET `params`='".json_encode($t)."' WHERE `name`='template' AND `module_id`=0";
 	$db->Execute($q);
 	$_CONFIG['template'] = $t;
