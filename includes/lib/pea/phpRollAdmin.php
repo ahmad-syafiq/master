@@ -1140,7 +1140,7 @@ class phpRollAdmin extends phpEasyAdminLib
 											$last = '';
 											if (!empty($_POST[$input->name][$i]))
 											{
-												foreach((array)$_POST[$input->name][$i] AS $l => $p)
+												foreach(to_array($_POST[$input->name][$i]??[]) AS $l => $p)
 												{
 													$t = $p ? $p : $last;
 													if (@$input->nl2br) $t = nl2br($t);

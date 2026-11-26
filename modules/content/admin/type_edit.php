@@ -8,8 +8,8 @@ if(isset($_POST['submit_update']))
 {
 	$dt = array(
 	  'title'  => to_string($_POST['title']),
-	  'detail' => json_encode($_POST['detail']),
-	  'list'   => json_encode($_POST['list']),
+	  'detail' => json_encode(to_array($_POST['detail'])),
+	  'list'   => json_encode(to_array($_POST['list'])),
 	  'menu_id'=> @intval($_POST['menu_id']),
 	  'active' => @intval($_POST['active'])
 	);

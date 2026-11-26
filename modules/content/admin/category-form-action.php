@@ -67,7 +67,7 @@ if($prefix == 'edit_')
 		}
 		$is_post = true;
 		$tmp_category_id = $category_id;
-		$tmp_category_title = $_POST['edit_text'][lang_id()]['title'];
+		$tmp_category_title = to_string($_POST['edit_text'][lang_id()]['title']);
 		echo msg('Success updating data.');
 	}
 }else{
@@ -103,7 +103,7 @@ if($prefix == 'edit_')
 		";
 		$db->Execute($q);
 		$tmp_category_id = $db->Insert_ID();
-		$tmp_category_title = $_POST['add_text'][lang_id()]['title'];
+		$tmp_category_title = to_string($_POST['add_text'][lang_id()]['title']);
 		$q = "SELECT lang_id FROM bbc_content_cat_text WHERE cat_id=$tmp_category_id";
 		$r_key_lang = $db->getCol($q);
 		foreach(to_array($_POST['add_text']??[]) AS $lang_id => $dt)

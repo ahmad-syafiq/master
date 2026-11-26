@@ -113,7 +113,7 @@ class bbcsystem
 	{
 		global $Bbc;
 		if(!$this->is_init) exit;
-		$mod = isset($_GET['mod']) ? $_GET['mod'] : $Bbc->home;
+		$mod = isset($_GET['mod']) ? to_string($_GET['mod']) : $Bbc->home;
 		$module_name = strstr($mod, '.') ? substr($mod, 0, strrpos($mod, '.')) : $mod;
 		$module_id = $this->get_module_id($module_name);
 		if($module_id == 0)

@@ -63,7 +63,7 @@ if (!empty($_GET['q']) && !empty($_GET['token']) && is_string($_GET['q']) && is_
 		}
 		if (!empty($token['parent']) && !empty($_GET['parent']) && is_string($_GET['parent']))
 		{
-			$parent = str_replace(array('"',"'",' '), '', $_GET['parent']);
+			$parent = str_replace(array('"',"'",' '), '', to_string($_GET['parent']));
 			if (!empty($parent))
 			{
 				$parent = is_numeric($parent) ? $parent : "'{$parent}'";
