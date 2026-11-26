@@ -51,7 +51,7 @@ if (!empty($_POST['shortcut_submit_update']))
 	}
 	if (!empty($_POST['cpanels']))
 	{
-		$ids = $_POST['cpanels'];
+		$ids = to_array($_POST['cpanels']);
 		ids($ids);
 		if (!empty($ids))
 		{

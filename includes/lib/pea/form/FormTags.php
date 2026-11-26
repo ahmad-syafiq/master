@@ -177,13 +177,13 @@ class FormTags extends FormMulticheckbox
 			UPDATE SQL DARI EDIT FORM
 			==============================================*/
 			$query       = 'SELECT '.$this->tableId.' FROM '.$this->tableName .' '. $this->sqlCondition;
-			$post        = to_array((array)($_POST[$name]??[]));
+			$post        = to_array($_POST[$name]??[]);
 			$mainTableId = $this->actionType == 'add' ? 0 : (!empty($this->parent->arrResult[$this->tableId]) ? intval($this->parent->arrResult[$this->tableId]) : intval($this->db->getOne($query)));
 		}else{
 			/*==============================================
 			UPDATE SQL DARI ROLL FORM
       ==============================================*/
-			$post        = to_array((array)($_POST[$name][$i]??[]));
+			$post        = to_array($_POST[$name][$i]??[]);
 			$mainTableId = @intval($_POST[$this->formName.'_'.$this->tableId][$i]);
 		}
 		$post = is_array($post) ? array_unique($post) : array($post);

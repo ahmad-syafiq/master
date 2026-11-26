@@ -159,7 +159,7 @@ class FormMultiid extends FormMulticheckbox
 			/*==============================================
 			UPDATE SQL DARI ROLL FORM
       ==============================================*/
-			$post        = isset( $_POST[$name][$i] ) ? $_POST[$name][$i] : '';
+			$post        = to_array( $_POST[$name][$i] );
 			$mainTableId = @intval($_POST[$this->formName.'_'.$this->tableId][$i]);
 		}
 		$resultData  = $this->getIDsFromReferenceTable($post);
