@@ -118,10 +118,14 @@ class bbcconfig
 							}
 						break;
 						case 'checkbox':
-							$data['option'] = @$data['option'];
+							$data['option'] = $this->config[$name]['option'] ?? [];
 							if(!is_array($data['option']) || count($data['option']) == 1)
 							{
 								$post[$name] = to_int($_POST[$this->name][$name]??'');
+								break;
+							}
+							if (is_array($data['option'])) {
+								$post[$name] = to_array($_POST[$this->name][$name]??'');
 								break;
 							}
 						default:
