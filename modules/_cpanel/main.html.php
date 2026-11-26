@@ -17,10 +17,10 @@ if(!empty($data))
 $data['image']  = "";
 
 
-$data['config'] = $data_result['config'];
+$data['config'] = $data_result['config']??[];
 
 $r = array();
-if (is_array($data_result['data']))
+if (!empty($data_result['data']) && is_array($data_result['data']))
 {
 	$data['total'] = count($data_result['data']);
 	foreach ($data_result['data'] as $d)
