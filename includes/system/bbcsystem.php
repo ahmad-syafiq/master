@@ -952,7 +952,9 @@ class bbcsystem
 				}
 			}
 		}
-		curl_close($init);
+		if (PHP_VERSION_ID < 80000) {
+		    curl_close($ch);
+		}
 		if($presist > 0 && !empty($output))
 		{
 			if ( $fp = @fopen($temp.'_'.md5($url), 'w+'))

@@ -79,8 +79,8 @@ class blockSystem
 					}
 				}else $block->content = 'none';
 				ob_end_clean();
-				if(_SEO)$block_output[strtolower($block_dt['position_name'])][] = preg_replace_callback($Bbc->regex, 'module_replace', $this->text_replace($block_dt['content'], $block));
-				else		$block_output[strtolower($block_dt['position_name'])][] = $this->text_replace($block_dt['content'], $block);
+				if(_SEO)$block_output[strtolower($block_dt['position_name']??'')][] = preg_replace_callback($Bbc->regex, 'module_replace', $this->text_replace($block_dt['content'], $block));
+				else		$block_output[strtolower($block_dt['position_name']??'')][] = $this->text_replace($block_dt['content'], $block);
 				$sys->module_clear();
 			}
 		}
