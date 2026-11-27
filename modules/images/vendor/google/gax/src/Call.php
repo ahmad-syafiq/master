@@ -45,6 +45,7 @@ class Call
     const SERVER_STREAMING_CALL = 3;
     const LONGRUNNING_CALL = 4;
     const PAGINATED_CALL = 5;
+    const RESUMABLE_UPLOAD_CALL = 6;
 
     private $method;
     private $callType;
@@ -61,7 +62,7 @@ class Call
      */
     public function __construct(
         string $method,
-        string $decodeType = null,
+        ?string $decodeType = null,
         $message = null,
         $descriptor = [],
         int $callType = Call::UNARY_CALL

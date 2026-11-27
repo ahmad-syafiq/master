@@ -19,6 +19,7 @@ namespace Google\Auth;
 
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
+use Google\Auth\CredentialSource\X509Source;
 use Google\Auth\HttpHandler\HttpClientCache;
 use Google\Auth\HttpHandler\HttpHandlerFactory;
 use GuzzleHttp\Psr7\Query;
@@ -42,7 +43,8 @@ class OAuth2 implements FetchAuthTokenInterface
     const DEFAULT_SKEW_SECONDS = 60; // 1 minute
     const JWT_URN = 'urn:ietf:params:oauth:grant-type:jwt-bearer';
     const STS_URN = 'urn:ietf:params:oauth:grant-type:token-exchange';
-    private const STS_REQUESTED_TOKEN_TYPE = 'urn:ietf:params:oauth:token-type:access_token';
+    private const TOKEN_TYPE_ACCESS_TOKEN = 'urn:ietf:params:oauth:token-type:access_token';
+    private const TOKEN_TYPE_MTLS = 'urn:ietf:params:oauth:token-type:mtls';
 
     /**
      * TODO: determine known methods from the keys of JWT::methods.
@@ -581,10 +583,12 @@ class OAuth2 implements FetchAuthTokenInterface
     /**
      * Generates a request for token credentials.
      *
-     * @param callable $httpHandler callback which delivers psr7 request
+     * @param callable|null $httpHandler callback which delivers psr7 request
+     * @param array<mixed> $headers [optional] Additional headers to pass to
+     *        the token endpoint request.
      * @return RequestInterface the authorization Url.
      */
-    public function generateCredentialsRequest(callable $httpHandler = null)
+    public function generateCredentialsRequest(?callable $httpHandler = null, array $headers = [])
     {
         $uri = $this->getTokenCredentialUri();
         if (is_null($uri)) {
@@ -609,6 +613,9 @@ class OAuth2 implements FetchAuthTokenInterface
                 break;
             case 'refresh_token':
                 $params['refresh_token'] = $this->getRefreshToken();
+                if (isset($this->getAdditionalClaims()['target_audience'])) {
+                    $params['target_audience'] = $this->getAdditionalClaims()['target_audience'];
+                }
                 $this->addClientCredentials($params);
                 break;
             case self::JWT_URN:
@@ -622,7 +629,7 @@ class OAuth2 implements FetchAuthTokenInterface
                     'resource'             => $this->resource,
                     'audience'             => $this->audience,
                     'scope'                => $this->getScope(),
-                    'requested_token_type' => self::STS_REQUESTED_TOKEN_TYPE,
+                    'requested_token_type' => self::TOKEN_TYPE_ACCESS_TOKEN,
                     'actor_token'          => $this->actorToken,
                     'actor_token_type'     => $this->actorTokenType,
                 ]);
@@ -646,7 +653,7 @@ class OAuth2 implements FetchAuthTokenInterface
         $headers = [
             'Cache-Control' => 'no-store',
             'Content-Type' => 'application/x-www-form-urlencoded',
-        ];
+        ] + $headers;
 
         return new Request(
             'POST',
@@ -657,18 +664,40 @@ class OAuth2 implements FetchAuthTokenInterface
     }
 
     /**
+     * @return array{cert?: string, ssl_key?: string}
+     */
+    private function generateCredentialsRequestOptions(): array
+    {
+        if ($this->subjectTokenType === self::TOKEN_TYPE_MTLS
+            && $this->subjectTokenFetcher instanceof X509Source
+        ) {
+            return [
+                'cert' => $this->subjectTokenFetcher->getCertPath(),
+                'ssl_key' => $this->subjectTokenFetcher->getKeyPath(),
+            ];
+        }
+
+        return [];
+    }
+
+    /**
      * Fetches the auth tokens based on the current state.
      *
-     * @param callable $httpHandler callback which delivers psr7 request
+     * @param callable|null $httpHandler callback which delivers psr7 request
+     * @param array<mixed> $headers [optional] If present, add these headers to the token
+     *        endpoint request.
      * @return array<mixed> the response
      */
-    public function fetchAuthToken(callable $httpHandler = null)
+    public function fetchAuthToken(?callable $httpHandler = null, array $headers = [])
     {
         if (is_null($httpHandler)) {
             $httpHandler = HttpHandlerFactory::build(HttpClientCache::getHttpClient());
         }
 
-        $response = $httpHandler($this->generateCredentialsRequest($httpHandler));
+        $response = $httpHandler(
+            $this->generateCredentialsRequest($httpHandler, $headers),
+            $this->generateCredentialsRequestOptions()
+        );
         $credentials = $this->parseTokenResponse($response);
         $this->updateToken($credentials);
         if (isset($credentials['scope'])) {
@@ -679,10 +708,12 @@ class OAuth2 implements FetchAuthTokenInterface
     }
 
     /**
+     *
      * Obtains a key that can used to cache the results of #fetchAuthToken.
      *
      * The key is derived from the scopes.
      *
+     * @deprecated
      * @return ?string a key that may be used to cache the auth token.
      */
     public function getCacheKey()
@@ -700,6 +731,16 @@ class OAuth2 implements FetchAuthTokenInterface
     }
 
     /**
+     * Gets this instance's SubjectTokenFetcher
+     *
+     * @return null|ExternalAccountCredentialSourceInterface
+     */
+    public function getSubjectTokenFetcher(): ?ExternalAccountCredentialSourceInterface
+    {
+        return $this->subjectTokenFetcher;
+    }
+
+    /**
      * Parses the fetched tokens.
      *
      * @param ResponseInterface $resp the response.
@@ -708,7 +749,7 @@ class OAuth2 implements FetchAuthTokenInterface
      */
     public function parseTokenResponse(ResponseInterface $resp)
     {
-        $body = (string)$resp->getBody();
+        $body = (string) $resp->getBody();
         if ($resp->hasHeader('Content-Type') &&
             $resp->getHeaderLine('Content-Type') == 'application/x-www-form-urlencoded'
         ) {
@@ -993,13 +1034,13 @@ class OAuth2 implements FetchAuthTokenInterface
         if (!$this->isAbsoluteUri($uri)) {
             // "postmessage" is a reserved URI string in Google-land
             // @see https://developers.google.com/identity/sign-in/web/server-side-flow
-            if ('postmessage' !== (string)$uri) {
+            if ('postmessage' !== (string) $uri) {
                 throw new InvalidArgumentException(
                     'Redirect URI must be absolute'
                 );
             }
         }
-        $this->redirectUri = (string)$uri;
+        $this->redirectUri = (string) $uri;
     }
 
     /**
@@ -1014,6 +1055,16 @@ class OAuth2 implements FetchAuthTokenInterface
         }
 
         return implode(' ', $this->scope);
+    }
+
+    /**
+     * Gets the subject token type
+     *
+     * @return ?string
+     */
+    public function getSubjectTokenType(): ?string
+    {
+        return $this->subjectTokenType;
     }
 
     /**
@@ -1101,7 +1152,7 @@ class OAuth2 implements FetchAuthTokenInterface
                     'invalid grant type'
                 );
             }
-            $this->grantType = (string)$grantType;
+            $this->grantType = (string) $grantType;
         }
     }
 
@@ -1434,7 +1485,7 @@ class OAuth2 implements FetchAuthTokenInterface
             $this->issuedAt = null;
         } else {
             $this->issuedAt = time();
-            $this->expiresIn = (int)$expiresIn;
+            $this->expiresIn = (int) $expiresIn;
         }
     }
 
@@ -1655,13 +1706,13 @@ class OAuth2 implements FetchAuthTokenInterface
     /**
      * Get the client ID.
      *
-     * Alias of {@see Google\Auth\OAuth2::getClientId()}.
+     * Alias of {@see OAuth2::getClientId()}.
      *
-     * @param callable $httpHandler
+     * @param callable|null $httpHandler
      * @return string
      * @access private
      */
-    public function getClientName(callable $httpHandler = null)
+    public function getClientName(?callable $httpHandler = null)
     {
         return $this->getClientId();
     }
@@ -1742,7 +1793,8 @@ class OAuth2 implements FetchAuthTokenInterface
                 throw new \InvalidArgumentException(
                     'To have multiple allowed algorithms, You must provide an'
                     . ' array of Firebase\JWT\Key objects.'
-                    . ' See https://github.com/firebase/php-jwt for more information.');
+                    . ' See https://github.com/firebase/php-jwt for more information.'
+                );
             }
             $allowedAlg = array_pop($allowedAlgs);
         } else {

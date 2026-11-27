@@ -498,8 +498,10 @@ class image_lib {
 		}
 
 		//  Kill the file handles
-		imagedestroy($dst_img);
-		imagedestroy($src_img);
+		if (PHP_VERSION_ID < 80000) {
+			imagedestroy($dst_img);
+			imagedestroy($src_img);
+		}
 
 		// Set the file to 777
 		@chmod($this->full_dst_path, DIR_WRITE_MODE);

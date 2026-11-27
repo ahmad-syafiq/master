@@ -2,7 +2,7 @@
 // GENERATED CODE -- DO NOT EDIT!
 
 // Original file comments:
-// Copyright 2020 Google LLC
+// Copyright 2026 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -28,6 +28,8 @@ namespace Google\LongRunning;
  * Google Cloud Pub/Sub API) to receive the response.  Any API service that
  * returns long-running operations should implement the `Operations` interface
  * so developers can have a consistent client experience.
+ *
+ * @deprecated Please use the new service client {@see \Google\LongRunning\Client\OperationsClient}.
  */
 class OperationsGrpcClient extends \Grpc\BaseStub {
 

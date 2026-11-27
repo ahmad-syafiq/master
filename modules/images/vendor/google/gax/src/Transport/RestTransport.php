@@ -31,10 +31,11 @@
  */
 namespace Google\ApiCore\Transport;
 
-use BadMethodCallException;
 use Google\ApiCore\ApiException;
 use Google\ApiCore\Call;
+use Google\ApiCore\InsecureRequestBuilder;
 use Google\ApiCore\RequestBuilder;
+use Google\ApiCore\ResumableUpload\ResumableUploadTransportInterface;
 use Google\ApiCore\ServerStream;
 use Google\ApiCore\ServiceAddressTrait;
 use Google\ApiCore\Transport\Rest\RestServerStreamingCall;
@@ -48,7 +49,7 @@ use Psr\Http\Message\ResponseInterface;
 /**
  * A REST based transport implementation.
  */
-class RestTransport implements TransportInterface
+class RestTransport implements TransportInterface, ResumableUploadTransportInterface
 {
     use ValidationTrait;
     use ServiceAddressTrait;
@@ -84,6 +85,7 @@ class RestTransport implements TransportInterface
      *
      *    @type callable $httpHandler A handler used to deliver PSR-7 requests.
      *    @type callable $clientCertSource A callable which returns the client cert as a string.
+     *    @type bool $hasEmulator True if the emulator is enabled.
      * }
      * @return RestTransport
      * @throws ValidationException
@@ -93,10 +95,14 @@ class RestTransport implements TransportInterface
         $config += [
             'httpHandler'  => null,
             'clientCertSource' => null,
+            'hasEmulator' => false,
+            'logger' => null,
         ];
         list($baseUri, $port) = self::normalizeServiceAddress($apiEndpoint);
-        $requestBuilder = new RequestBuilder("$baseUri:$port", $restConfigPath);
-        $httpHandler = $config['httpHandler'] ?: self::buildHttpHandlerAsync();
+        $requestBuilder = $config['hasEmulator']
+            ? new InsecureRequestBuilder("$baseUri:$port", $restConfigPath)
+            : new RequestBuilder("$baseUri:$port", $restConfigPath);
+        $httpHandler = $config['httpHandler'] ?: self::buildHttpHandlerAsync($config['logger']);
         $transport = new RestTransport($requestBuilder, $httpHandler);
         if ($config['clientCertSource']) {
             $transport->configureMtlsChannel($config['clientCertSource']);
@@ -111,6 +117,9 @@ class RestTransport implements TransportInterface
     {
         $headers = self::buildCommonHeaders($options);
 
+        // Add the $call object ID for logging
+        $options['requestId'] = crc32((string) spl_object_id($call) . getmypid());
+
         // call the HTTP handler
         $httpHandler = $this->httpHandler;
         return $httpHandler(
@@ -124,7 +133,7 @@ class RestTransport implements TransportInterface
             function (ResponseInterface $response) use ($call, $options) {
                 $decodeType = $call->getDecodeType();
                 /** @var Message $return */
-                $return = new $decodeType;
+                $return = new $decodeType();
                 $body = (string) $response->getBody();
 
                 // In some rare cases LRO response metadata may not be loaded
@@ -161,7 +170,10 @@ class RestTransport implements TransportInterface
                 return $return;
             },
             function (\Throwable $ex) {
-                if ($ex instanceof RequestException && $ex->hasResponse()) {
+                // Guzzle 7 carries the response on RequestException, Guzzle 8
+                // only on its ResponseException subclass, hence the
+                // method_exists() check.
+                if ($ex instanceof RequestException && method_exists($ex, 'getResponse') && $ex->getResponse()) {
                     throw ApiException::createFromRequestException($ex);
                 }
 
@@ -192,7 +204,7 @@ class RestTransport implements TransportInterface
         $request = $this->requestBuilder->build(
             $call->getMethod(),
             $call->getMessage()
-            // Exclude headers here because they will be added in _serverStreamRequest().
+            // Exclude headers here because they will be added in doServerStreamRequest().
         );
 
         $decoderOptions = [];
@@ -201,7 +213,7 @@ class RestTransport implements TransportInterface
         }
 
         return new ServerStream(
-            $this->_serverStreamRequest(
+            $this->doServerStreamRequest(
                 $this->httpHandler,
                 $request,
                 $headers,
@@ -211,6 +223,31 @@ class RestTransport implements TransportInterface
             ),
             $call->getDescriptor()
         );
+    }
+
+    /**
+     * Sends a raw PSR-7 request.
+     *
+     * @param RequestInterface $request
+     * @param array            $options
+     * @return \Psr\Http\Message\ResponseInterface|\GuzzleHttp\Promise\PromiseInterface
+     */
+    public function sendRawRequest(RequestInterface $request, array $options = [])
+    {
+        return ($this->httpHandler)($request, $options);
+    }
+
+    /**
+     * Builds a PSR-7 request.
+     *
+     * @param string   $method
+     * @param ?Message $message
+     * @param array    $headers
+     * @return RequestInterface
+     */
+    public function buildRequest(string $method, ?Message $message = null, array $headers = []): RequestInterface
+    {
+        return $this->requestBuilder->build($method, $message, $headers);
     }
 
     /**
@@ -225,7 +262,7 @@ class RestTransport implements TransportInterface
      *
      * @return RestServerStreamingCall
      */
-    private function _serverStreamRequest(
+    private function doServerStreamRequest(
         $httpHandler,
         $request,
         $headers,
@@ -260,6 +297,14 @@ class RestTransport implements TransportInterface
             list($cert, $key) = self::loadClientCertSource($this->clientCertSource);
             $callOptions['cert'] = $cert;
             $callOptions['key'] = $key;
+        }
+
+        if (isset($options['retryAttempt'])) {
+            $callOptions['retryAttempt'] = $options['retryAttempt'];
+        }
+
+        if (isset($options['requestId'])) {
+            $callOptions['requestId'] = $options['requestId'];
         }
 
         return $callOptions;
