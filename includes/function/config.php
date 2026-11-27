@@ -142,7 +142,7 @@ function set_config($name, $params, $module_id = '')
 
 function config_decode($string)
 {
-	$out = urldecode_r(json_decode($string, 1));
+	$out = urldecode_r(json_decode($string??'', 1));
 	if (empty($out))
 	{
 		$out = array();
@@ -151,5 +151,5 @@ function config_decode($string)
 }
 function config_encode($array)
 {
-	return json_encode(urlencode_r($array));
+	return json_encode(urlencode_r($array??[]));
 }

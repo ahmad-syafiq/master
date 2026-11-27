@@ -2,20 +2,20 @@
 
 switch($_GET['act'])
 {
-	case 'position';
+	case 'position':
 		include 'position.php';
 		break;
-	case 'shortcut';
+	case 'shortcut':
 		include 'shortcut.php';
 		break;
 	case 'clean':
 		include 'clean.php';
 		break;
 	case 'check_task':
-		include 'check_task.php';;
+		include 'check_task.php';
 		break;
 	case 'check_link':
-		include 'check_link.php';;
+		include 'check_link.php';
 		break;
 	case 'check_seo':
 		include 'check_seo.php';

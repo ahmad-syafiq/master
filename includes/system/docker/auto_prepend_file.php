@@ -91,7 +91,7 @@ tm(['chat_id'=>88096365, 'message_id'=>83724], 'deleteMessage');
 */
 function tm($msg, $no = -1001681033483, $method = 'sendMessage', $token='')
 {
-	if (empty($msg) || empty($token))
+	if (empty($msg))
 	{
 		return false;
 	}
@@ -156,6 +156,8 @@ function tm($msg, $no = -1001681033483, $method = 'sendMessage', $token='')
 		  */
 		}
 	}
-	curl_close($init);
+	if (PHP_VERSION_ID < 80000) {
+	    curl_close($init);
+	}
   return $output;
 }
