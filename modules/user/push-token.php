@@ -17,6 +17,7 @@ $output = array(
 	'message' => 'failed to save your data',
 	'result'  => 0
 	);
+die();
 if (!empty($_POST['token']) && !empty($_POST['secretkey']))
 {
 	$token     = $_POST['token'];
